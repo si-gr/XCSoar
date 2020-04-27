@@ -69,6 +69,7 @@ Version 7.0 - not yet released
   - support Kobo Glo HD
 * Raspberry Pi
   - resizable mouse cursor
+* Add HTTPS support on all targets
 
 Version 6.8.14 - not yet released
 * Android

@@ -15,7 +15,8 @@ apt-get install $APTOPTS make \
   git quilt zip \
   m4 automake wget \
   ttf-bitstream-vera fakeroot \
-  pkg-config
+  pkg-config \
+  libwolfssl-dev libwolfssl15
 echo
 
 echo Installing Manual dependencies...
