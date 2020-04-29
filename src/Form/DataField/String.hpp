@@ -27,7 +27,7 @@ Copyright_License {
 #include "Base.hpp"
 #include "util/StaticString.hxx"
 
-#define EDITSTRINGSIZE 32
+#define EDITSTRINGSIZE 64
 
 class DataFieldString: public DataField
 {

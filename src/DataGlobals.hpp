@@ -27,6 +27,7 @@ Copyright_License {
 #include <memory>
 
 class RaspStore;
+class Skysight;
 
 /**
  * This namespace provides helper functions to access generic global
@@ -41,7 +42,9 @@ class RaspStore;
  */
 namespace DataGlobals {
 std::shared_ptr<RaspStore> GetRasp();
+std::shared_ptr<Skysight> GetSkysight();
 void SetRasp(std::shared_ptr<RaspStore> rasp);
+void SetSkysight(std::shared_ptr<Skysight> skysight);
 };
 
 #endif
