@@ -114,6 +114,8 @@ elif target == 'ANDROID':
         libsodium,
         openssl,
         cares,
+        netcdf,
+        netcdfcxx,
         curl,
         lua,
         proj,
