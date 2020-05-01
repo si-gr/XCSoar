@@ -103,7 +103,7 @@ SkysightImageFile::SkysightImageFile(Path _filename) {
 SkysightImageFile::SkysightImageFile(Path _filename, Path _path) { 
   filename = _filename;
   fullpath = _path;
-  region = tstring(_("INVALID"));
+  region = _("INVALID");
   metric = tstring(_("INVALID"));
   datetime = 0;
   is_valid = false;
@@ -121,7 +121,7 @@ SkysightImageFile::SkysightImageFile(Path _filename, Path _path) {
   if(p == tstring::npos)
     return;
     
-  tstring reg = file_base.substr(0, p);  
+  const char* reg = file_base.substr(0, p).c_str();  
   tstring rem = file_base.substr(p+1);  
   
   p = rem.find(_("-"));
@@ -144,8 +144,8 @@ SkysightImageFile::SkysightImageFile(Path _filename, Path _path) {
     
   mtime = File::GetLastModification(fullpath);
     
-    
-  region = reg;
+  region = new char[64];  
+  strcpy(region,reg);
   metric = met;
   is_valid = true;
 }
@@ -312,9 +312,12 @@ void Skysight::LoadActiveMetrics() {
 
 bool Skysight::IsReady(bool force_update) 
 {
-  if(email.empty() || password.empty() || region.empty())
+  
+  if(email.empty() || password.empty() || region == NULL){
+    LogFormat("Is ready? with region NULL");
     return false;
-
+  }
+  LogFormat("Skysight Is Ready? Yes return %d", NumMetrics());
   return (NumMetrics() > 0);
 }
 
@@ -329,10 +332,12 @@ Skysight::~Skysight() {
 
 void Skysight::Init() {
   const auto settings = CommonInterface::GetComputerSettings().weather.skysight;
-  region = settings.region.c_str();
+  //TODO fix constant length with copy stuff
+  region = new char[64];
+  strcpy(region, settings.region);
   email = settings.email.c_str();
   password = settings.password.c_str();
-
+  LogFormat("Skysight init called");
   api.Init(email,  password,  region,  APIInited);
   CleanupFiles();
 }
@@ -351,7 +356,7 @@ void Skysight::APIInited(const tstring &&details,  const bool success,
 
 bool Skysight::GetActiveMetricState(tstring metric_name, SkysightActiveMetric &m) {
   
-  tstring search_pattern = region + "-" + metric_name + "*";
+  tstring search_pattern = tstring(region) + "-" + metric_name + "*";
   std::vector<SkysightImageFile> img_files = ScanFolder(search_pattern);
   
   if(img_files.size() > 0) {
@@ -570,7 +575,7 @@ bool Skysight::DisplayActiveMetric(const TCHAR *const id) {
  
       bdt = FromUnixTime(test_time);
       filename.Format("%s-%s-%04u%02u%02u%02u%02u.tif", 
-            region.c_str(), id,
+            region, id,
             bdt.year, bdt.month, 
             bdt.day, bdt.hour, bdt.minute);
                 

@@ -43,13 +43,13 @@ struct SkysightRequestArgs {
   const tstring path;
   const bool to_file;
   const SkysightCallType calltype;
-  const tstring region;
+  const char* region;
   const tstring layer;
   const uint64_t from;
   const uint64_t to;
   const SkysightCallback cb;
   SkysightRequestArgs(const tstring &&_url, const tstring &&_path, const bool _to_file, 
-       const SkysightCallType _ct, const tstring &&_region, const tstring &&_layer,
+       const SkysightCallType _ct, const char* &&_region, const tstring &&_layer,
        const uint64_t _from = 0, const uint64_t _to = 0,
        const SkysightCallback _cb = nullptr) :
       url(_url), path(_path), to_file(_to_file), calltype(_ct), region(_region), layer(_layer), 

@@ -64,10 +64,18 @@ public:
   
   bool IsInited();
   
-  tstring region;
+  char* region;
+  //TODO: Behinderte scheise weg machen
+  struct cmp_str {
+    bool operator()(char const *a, char const *b) const
+    {
+      if(a == NULL || b == NULL)
+        return 0;
+      return std::strcmp(a, b) < 0;
+    }
+  };
   
-  
-  std::map<tstring, tstring> regions;
+  std::map<char*, char*, cmp_str> regions;
   std::vector<SkysightMetric> metrics;
   SkysightMetric GetMetric(int index);
   SkysightMetric GetMetric(const tstring id);
@@ -79,7 +87,7 @@ public:
   bool GetImageAt(const TCHAR *const layer, BrokenDateTime fctime, BrokenDateTime maxtime,
                   SkysightCallback cb = nullptr);
   
-  void Init(const tstring email, const tstring password, const tstring _region,
+  void Init(const tstring email, const tstring password, const char* _region,
             const SkysightCallback cb);
 
 

@@ -70,7 +70,7 @@ static void FillRegionControl(WndProperty &wp, const TCHAR *setting)
   auto skysight = DataGlobals::GetSkysight();
 
   for(auto &i : skysight->GetRegions())
-    df->addEnumText(i.first.c_str(), i.second.c_str());
+    df->addEnumText(i.first, i.second);
 
   // if old region doesn't exist any more this will fall back to first element
   df->Set(setting);

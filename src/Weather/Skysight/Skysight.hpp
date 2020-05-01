@@ -54,7 +54,7 @@ public:
   Path fullpath;
   Path filename;
   tstring metric;
-  tstring region;
+  char* region;
   uint64_t datetime;
   bool is_valid;
   uint64_t mtime;
@@ -62,7 +62,7 @@ public:
 
 class Skysight final : private NullBlackboardListener { //: public Timer {
   public:
-    tstring region = "EUROPE";
+    char* region;
     DisplayedMetric displayed_metric;
     
     static void DownloadComplete(const tstring &&details,  const bool success,  
@@ -71,10 +71,10 @@ class Skysight final : private NullBlackboardListener { //: public Timer {
     static void APIInited(const tstring &&details,  const bool success,  
                 const tstring &&layer_id,  const uint64_t time_index);
 
-    std::map<tstring, tstring> GetRegions() {
+    std::map<char*, char*, SkysightAPI::cmp_str> GetRegions() {
       return api.regions;
     }
-    tstring GetRegion() {
+    char* GetRegion() {
       return api.region;
     }
     SkysightMetric GetMetric(int index) {

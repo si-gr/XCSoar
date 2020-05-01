@@ -121,13 +121,14 @@ const tstring SkysightAPI::GetUrl(SkysightCallType type, const char *const layer
       url = SKYSIGHTAPI_BASE_URL"/regions";
       break;
     case SkysightCallType::Layers:
-      url.Format(SKYSIGHTAPI_BASE_URL "/layers?region_id=%s", region.c_str());
+      url.Format(SKYSIGHTAPI_BASE_URL "/layers?region_id=%s", region);
+      LogFormat("URL constructed with %s", url.c_str());
       break;
     case SkysightCallType::LastUpdates:
-      url.Format(SKYSIGHTAPI_BASE_URL "/data/last_updated?region_id=%s", region.c_str());
+      url.Format(SKYSIGHTAPI_BASE_URL "/data/last_updated?region_id=%s", region);
       break;    
     case SkysightCallType::DataDetails:
-      url.Format(SKYSIGHTAPI_BASE_URL "/data?region_id=%s&layer_ids=%s&from_time=%llu", region.c_str(), layer, from);
+      url.Format(SKYSIGHTAPI_BASE_URL "/data?region_id=%s&layer_ids=%s&from_time=%llu", region, layer, from);
       break;    
     case SkysightCallType::Data:
     case SkysightCallType::Image:
@@ -149,19 +150,19 @@ AllocatedPath SkysightAPI::GetPath(SkysightCallType type, const char *const laye
       filename = "regions.json";
       break;
     case SkysightCallType::Layers:
-      filename.Format("layers-%s.json", region.c_str());
+      filename.Format("layers-%s.json", region);
       break;
     case SkysightCallType::LastUpdates:
-      filename.Format("lastupdated-%s.json", region.c_str());
+      filename.Format("lastupdated-%s.json", region);
       break;    
     case SkysightCallType::DataDetails:
       fc = FromUnixTime(fctime);
-      filename.Format("%s-datafiles-%s-%04d%02d%02d%02d%02d.json", region.c_str(), layer, 
+      filename.Format("%s-datafiles-%s-%04d%02d%02d%02d%02d.json", region, layer, 
           fc.year, fc.month, fc.day, fc.hour, fc.minute);
       break;    
     case SkysightCallType::Data:
       fc = FromUnixTime(fctime);
-      filename.Format("%s-%s-%04d%02d%02d%02d%02d.nc", region.c_str(), layer, 
+      filename.Format("%s-%s-%04d%02d%02d%02d%02d.nc", region, layer, 
           fc.year, fc.month, fc.day, fc.hour, fc.minute);
       break;  
     case SkysightCallType::Image:
@@ -188,13 +189,18 @@ BrokenDateTime SkysightAPI::FromUnixTime(uint64_t t) {
 
 
 
-void SkysightAPI::Init(tstring email, tstring password, tstring _region, SkysightCallback cb) {
+void SkysightAPI::Init(const tstring email, const tstring password, const char* _region, SkysightCallback cb) {
 
   inited_regions = false;
   inited_layers = false;
   inited_lastupdates = false;
 
-  region = (_region.empty()) ? "EUROPE" : _region;
+  if(region == NULL){
+    LogFormat("Skysight API Init region nullptr");
+    region = new char[64];
+    strcpy(region, _T("EUROPE"));
+  }
+  //region = (region == NULL) ? _T("EUROPE") : _region;
   LoadDefaultRegions();
   
   if(email.empty() || password.empty())
@@ -259,8 +265,9 @@ SkysightAPI::ParseResponse(const tstring &&result, const bool success, const Sky
 bool SkysightAPI::ParseRegions(const SkysightRequestArgs &args, const tstring &result) {
 
   boost::property_tree::ptree details;
-  
+  LogFormat("Parse regions");
   if(!GetResult(args, result.c_str(), details)) {
+    LogFormat("no results");
     LoadDefaultRegions();
     return false;
   }
@@ -273,13 +280,24 @@ bool SkysightAPI::ParseRegions(const SkysightRequestArgs &args, const tstring &r
     boost::property_tree::ptree &node = i.second;
     auto id = node.find("id");
     auto name = node.find("name");
+    LogFormat("Checking for name %s", name->second.data().c_str());
     if(id != node.not_found()) {
-      regions.insert(std::pair<tstring, tstring>(id->second.data(), name->second.data()));
+      //TODO Aufraeumen und direkt char* verwenden
+      tstring idstring = id->second.data();
+      tstring namestring = name->second.data();
+      char *idInsert = new char[idstring.length() + 1];
+      strcpy(idInsert, idstring.c_str());
+      char *nameInsert = new char[namestring.length() + 1];
+      strcpy(nameInsert, namestring.c_str());
+      regions.insert(std::pair<char*, char*>(idInsert, nameInsert));
       success = true;
+    } else {
+      LogFormat("Node not found");
     }
   }
 
   if(success) {
+    LogFormat("Success with the regions insert");
     inited_regions = true;
   } else { //fall back to defaults
     LoadDefaultRegions();
@@ -288,15 +306,20 @@ bool SkysightAPI::ParseRegions(const SkysightRequestArgs &args, const tstring &r
 
   //region loaded from settings is not in our regions list. Fall back to Europe.
   if(regions.find(region) == regions.end()) {
-    region = "EUROPE";
+    
+    LogFormat("Region is not in regions list");
+    strcpy(region, _T("EUROPE"));
+    //region = _T("EUROPE");
     return false;
   }
 
   if(success) {
-    if(!inited_layers)
+    if(!inited_layers){
+      LogFormat("Getting Layers data");
       GetData(SkysightCallType::Layers, args.cb);
-    else
+    } else {
        MakeCallback(args.cb, result.c_str(), success, _T(""), 0);
+    }
 
     inited_regions = true;
     return true;
@@ -307,11 +330,21 @@ bool SkysightAPI::ParseRegions(const SkysightRequestArgs &args, const tstring &r
 }
 
 void SkysightAPI::LoadDefaultRegions() {
-  for(auto r = skysight_region_defaults; r->id != nullptr;++r)
-    regions.insert(std::pair<tstring, tstring>(r->id, r->name));
+  for(auto r = skysight_region_defaults; r->id != nullptr;++r){
+    tstring idstr = r->id;
+    tstring namestr = r->name;
+    char *idinsert = new char[idstr.length() + 1];
+    char *nameinsert = new char[namestr.length() + 1];
+    strcpy(idinsert, idstr.c_str());
+    strcpy(nameinsert, namestr.c_str());
+    LogFormat("Inserting %s", nameinsert);
+    regions.insert(std::pair<char*, char*>(idinsert, nameinsert));
+  }
   
   if(regions.find(region) == regions.end()) {
-    region = "EUROPE";
+    region = new char[64];
+    strcpy(region, _T("EUROPE"));
+    //region = _T("EUROPE");
   }
 }
 
@@ -323,7 +356,7 @@ bool SkysightAPI::ParseLayers(const SkysightRequestArgs &args, const tstring &re
     MakeCallback(args.cb, _T(""), false, _T(""), 0);
     return false;
   }
-
+  LogFormat("Parse Layers and clearing metrics");
   metrics.clear();
   bool success = false;
 
@@ -484,7 +517,7 @@ bool SkysightAPI::GetData(SkysightCallType t, const TCHAR *const layer,
     path.c_str(),
     to_file,
     t,
-    region.c_str(),
+    region,
     layer ? layer : "",
     from,
     to,
@@ -555,13 +588,17 @@ bool SkysightAPI::CacheAvailable(Path path, SkysightCallType calltype, const TCH
 bool SkysightAPI::GetResult(const SkysightRequestArgs &args, const tstring result, boost::property_tree::ptree &output) {
 
   try {
+    LogFormat("Get Results");
     if(args.to_file) {
+      LogFormat("Args to File");
       boost::property_tree::read_json(result.c_str(), output);
+      LogFormat("boost gets %s", result.c_str());
     } else {
       std::stringstream result_stream(result);
       boost::property_tree::read_json(result_stream, output);
     }
   } catch(const std::exception &exc) {
+    LogFormat("Exception in get results");
     return false;
   }
   return true;
