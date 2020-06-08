@@ -212,7 +212,7 @@ bool SkysightRequest::RequestToFile() {
     }
     std::rename(temp_path.c_str(), args.path.c_str());
   }
-  
+  LogFormat("Request to file returned successfully");
   return success;
 }
 
