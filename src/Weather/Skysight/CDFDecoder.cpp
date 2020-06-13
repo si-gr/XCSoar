@@ -224,7 +224,8 @@ bool CDFDecoder::Decode() {
   size_t lon_size = data_file.get_dim("lon")->size();
   LogFormat("Lats %d Lons %d", lat_size, lon_size);
   LogFormat("Creating double arrays");
-  return DecodeError();
+  //return DecodeError();
+  
   double lat_vals[lat_size];
   double lon_vals[lon_size];
   double var_vals[lat_size][lon_size];
