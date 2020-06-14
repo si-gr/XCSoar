@@ -226,9 +226,9 @@ bool CDFDecoder::Decode() {
   LogFormat("Creating double arrays");
   //return DecodeError();
   
-  double lat_vals[lat_size];
-  double lon_vals[lon_size];
-  double var_vals[lat_size][lon_size];
+  double *lat_vals = new double[lat_size];
+  double *lon_vals = new double[lon_size];
+  double *var_vals = new double[lat_size * lon_size];
   LogFormat("Trying num dims and num atts");
   LogFormat("Dims %d", data_file.get_var("lat")->num_dims());
   LogFormat("Atts %d", data_file.get_var("lat")->num_atts());
@@ -243,6 +243,8 @@ bool CDFDecoder::Decode() {
   double lon_max = lon_vals[lon_size - 1];
   double lon_scale = (lon_max - lon_min)/lon_size;
   double lat_scale = (lat_max - lat_min)/lat_size;
+  delete [] lat_vals;
+  delete [] lon_vals;
   LogFormat("Trying NCVar");
   NcVar *data_var = data_file.get_var(data_varname.c_str());
   LogFormat("242");
@@ -252,7 +254,9 @@ bool CDFDecoder::Decode() {
     return DecodeError();
   }
 
-  data_var->get(&var_vals[0][0], (long)lat_size, (long)lon_size);
+  LogFormat("filling up");
+  data_var->get(var_vals, (long)lat_size, (long)lon_size);
+  LogFormat("data filled");
   double fill_value = data_var->get_att("_FillValue")->values()->as_double(0);
   float var_offset = data_var->get_att("add_offset")->values()->as_float(0);
   float var_scale = data_var->get_att("scale_factor")->values()->as_float(0);
@@ -303,17 +307,20 @@ bool CDFDecoder::Decode() {
     (unsigned char *)_TIFFmalloc(linebytes) :
     (unsigned char *)_TIFFmalloc(TIFFScanlineSize(tf));
     
+  LogFormat("tiff malloc okay");
   TIFFSetField(tf, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tf, linebytes));
 
   int rb;
   bool success = true;
   double point_value;
-  for(unsigned y=(unsigned)lat_size-1; y>=0; y--) {
+  for(int y = (int)lat_size - 1; y >= 0; y--) {
     memset(row, 0, linebytes * sizeof(unsigned char)); //ensures unused data points are transparent
-    for(unsigned x=0;x<(unsigned)lon_size;x++) {
+    
+    LogFormat("memset %d", y);
+    for(int x = 0; x < (int)lon_size; x++) {
       rb = x * samplesperpixel;
-      if(var_vals[y][x] != fill_value) {
-        point_value = (var_vals[y][x] * var_scale) + var_offset;
+      if(var_vals[y * lon_size + x] != fill_value) {
+        point_value = (var_vals[y * lon_size + x] * var_scale) + var_offset;
         if(point_value > legend.begin()->first) {
           auto color_index = legend.lower_bound(point_value);
           color_index--;
@@ -347,6 +354,7 @@ bool CDFDecoder::Decode() {
   data_file.close();
   File::Delete(path);
   
+  delete [] var_vals; 
   LogFormat("Geotiff conversion %d", (success) ? DecodeSuccess() : DecodeError());
   return (success) ? DecodeSuccess() : DecodeError();
   return false;
