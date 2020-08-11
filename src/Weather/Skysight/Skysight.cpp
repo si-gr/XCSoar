@@ -67,21 +67,15 @@ Copyright_License {
  * -- overlay only shows following render -- no way to trigger from child thread
  * -- no transparent bg on overlay on android
  * 
- * --- for release ----
- * - clean up libs
- * - rebase on latest master, clean up
- * - move cache trimming to API?
- * - clean up metrics/activemetrics/displayed_layer -- inheritance rather than pointer
- * - Add documentation
- * - Test cubie compile / libs
- 
- --- style ----
- * fix variable style/case, 
- * reduce use of STL strings
- * Can use AtScopeExit for object cleanup in tiff generation
- * Use consistent string conventions ( _()?,  _T()?s )
- * replace #defines in skysight.hpp with better c++ idioms
-* Use static_cast<> instead of c casts
+ * - Date Formatter
+ * - C++ Exceptions for error handling
+ * - unique_ptr where possible, no * pointers
+ * - filesystem paths as Path not tstring
+ * - mutex lock / unlock can throw exceptions
+ * - use FileOutputStream in Request.cpp instead of File class
+ * - GetRegions in Skysight should return pointer, no deep copy
+ * - legend in Layers should not use float as map key
+ * - test windows build
  */
 
 Skysight *Skysight::self;
