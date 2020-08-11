@@ -322,7 +322,7 @@ void SkysightWidget::AddClicked()
   if (i < 0)
     return;
 
-  assert((int)i < skysight->GetNumLayerDescriptors());
+  assert(i < (int)skysight->GetNumLayerDescriptors());
   skysight->AddStandbyLayer(skysight->GetLayer(i).id.c_str());
   
   UpdateList();

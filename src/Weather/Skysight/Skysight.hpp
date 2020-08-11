@@ -72,7 +72,7 @@ class Skysight final : private NullBlackboardListener { //: public Timer {
     bool GetLayerDescriptorExists(const tstring id) {
       return api.GetLayerDescriptorExists(id);
     }
-    int GetNumLayerDescriptors() {
+    unsigned GetNumLayerDescriptors() {
       return api.GetNumLayerDescriptors();
     }
 

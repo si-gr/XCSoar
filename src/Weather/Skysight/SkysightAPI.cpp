@@ -92,8 +92,8 @@ bool SkysightAPI::GetLayerDescriptorExists(const tstring id) {
 }
 
 
-int SkysightAPI::GetNumLayerDescriptors() {
-  return (int)descriptors.size(); 
+unsigned SkysightAPI::GetNumLayerDescriptors() {
+  return (unsigned)descriptors.size(); 
 }
 
 const tstring SkysightAPI::GetUrl(SkysightCallType type, const char *const layer, const uint64_t from) {

@@ -74,7 +74,7 @@ public:
   SkysightLayerDescriptor GetLayer(int index);
   SkysightLayerDescriptor *GetLayer(const tstring id);
   bool GetLayerDescriptorExists(const tstring id);
-  int GetNumLayerDescriptors();
+  unsigned GetNumLayerDescriptors();
 
 
   bool GetImageAt(const TCHAR *const layer, BrokenDateTime fctime, BrokenDateTime maxtime,
