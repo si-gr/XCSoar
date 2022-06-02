@@ -29,6 +29,7 @@ import android.content.ComponentName;
 import android.content.pm.PackageManager;
 import android.util.Log;
 import android.provider.Settings;
+import android.net.Uri;
 
 public class XCSoar extends Activity {
   private static final String TAG = "XCSoar";
@@ -261,6 +262,10 @@ public class XCSoar extends Activity {
             public void onClick(DialogInterface dialog, int which) {
               try {
                 XCSoar.this.requestPermissions(NEEDED_PERMISSIONS, 0);
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.addCategory("android.intent.category.DEFAULT");
+                intent.setData(Uri.parse(String.format("package:%s",getApplicationContext().getPackageName())));
+                startActivityForResult(intent, 2296);
               } catch (IllegalArgumentException e) {
                 Log.e(TAG, "could not request permissions: " + String.join(", ", NEEDED_PERMISSIONS), e);
               }
