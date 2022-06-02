@@ -31,6 +31,25 @@ Copyright_License {
 #include "UIGlobals.hpp"
 #include "Waypoint/Patterns.hpp"
 #include "system/Path.hpp"
+#include "io/CopyFile.hxx"
+
+#include "Asset.hpp"
+
+#include "system/FileUtil.hpp"
+#include "system/Path.hpp"
+
+#include <vector>
+#include <string>
+
+#ifdef ANDROID
+#include <android/log.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "Android/Context.hpp"
+#include "Android/Environment.hpp"
+#include "Android/Main.hpp"
+#endif
 
 enum ControlIndex {
   DataPath,
@@ -44,10 +63,27 @@ enum ControlIndex {
   FlarmFile
 };
 
+
+class AllFileVisitor: public File::Visitor
+{
+    std::vector<Path> &list;
+
+  public:
+    AllFileVisitor(std::vector<Path> &_list):list(_list) {}
+
+    void Visit(Path path, Path filename) override {
+      list.emplace_back(path);
+    }
+};
+
 class SiteConfigPanel final : public RowFormWidget {
   enum Buttons {
     WAYPOINT_EDITOR,
   };
+
+  
+  std::vector<Path> list;
+  
 
 public:
   SiteConfigPanel()
@@ -56,6 +92,10 @@ public:
 public:
   void Prepare(ContainerWindow &parent, const PixelRect &rc) noexcept override;
   bool Save(bool &changed) noexcept override;
+  
+  void Show(const PixelRect &rc) noexcept override;
+  void Hide() noexcept override;
+  void Copy();
 };
 
 void
@@ -110,6 +150,25 @@ SiteConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &rc) noexcept
           _("The name of the file containing information about registered FLARM devices."),
           ProfileKeys::FlarmFile, _T("*.fln\0"),
           FileType::FLARMNET);
+
+}
+
+
+void
+SiteConfigPanel::Show(const PixelRect &rc) noexcept
+{
+  ConfigPanel::BorrowExtraButton(1, _("CopyFiles"), [this](){
+    Copy();
+  });
+
+  RowFormWidget::Show(rc);
+}
+
+void
+SiteConfigPanel::Hide() noexcept
+{
+  RowFormWidget::Hide();
+  ConfigPanel::ReturnExtraButton(1);
 }
 
 bool
@@ -143,4 +202,68 @@ std::unique_ptr<Widget>
 CreateSiteConfigPanel()
 {
   return std::make_unique<SiteConfigPanel>();
+}
+
+void
+SiteConfigPanel::Copy()
+{
+  
+
+/* Android: ask the Android API */
+  if constexpr (IsAndroid()) {
+    
+  list.clear();
+
+  AllFileVisitor afv(list);
+#ifdef ANDROID
+    const auto env = Java::GetEnv();
+
+    for (auto &path : context->GetExternalFilesDirs(env)) {
+      __android_log_print(ANDROID_LOG_DEBUG, "XCSoar",
+                          "Context.getExternalFilesDirs()='%s'",
+                          path.c_str());
+      
+    }
+    __android_log_print(ANDROID_LOG_DEBUG, "XCSoar",
+                          "Context.getExternalFilesDir_s()='%s'",
+                          context->GetExternalFilesDir(env).c_str());
+
+    if (auto path = Environment::GetExternalStoragePublicDirectory(env,
+                                                                   "XCSoarData");
+        path != nullptr) {
+      const bool writeable = access(path.c_str(), W_OK) == 0;
+      const bool readable = access(Path(_T("/storage/emulated/0/XCSoarData")).c_str(), R_OK) == 0;
+      if(!writeable){
+        __android_log_print(ANDROID_LOG_DEBUG, "XCSoar",
+                            "Environment.getExternalStoragePublicDirectory()='%s'%s",
+                            path.c_str(),
+                            writeable ? "" : " (not accessible)");
+        __android_log_print(ANDROID_LOG_DEBUG, "XCSoar",
+                            "/storage/emulated/0/XCSoarData %s",
+                            readable ? "" : " (read not accessible)");
+        
+        Directory::VisitFiles(path, afv, true);
+        std::string pathString = path.c_str();
+        for(unsigned i = 0; i < list.size(); i++){
+          std::string filename = list[i].c_str();
+          __android_log_print(ANDROID_LOG_DEBUG, "XCSoar",
+                            "Environment.getExternalStoragePublicDirectory()='%s'%s",
+                            path.c_str(),
+                            filename.substr(pathString.length(), filename.length()).c_str());
+          std::string dest = context->GetExternalFilesDir(env).c_str();
+          dest.append(filename.substr(pathString.length(), filename.length()));
+          const Path src_filename = Path(list[i].c_str());
+          const Path dest_filename = Path(dest.c_str());
+          CopyFile(src_filename, dest_filename);
+          __android_log_print(ANDROID_LOG_DEBUG, "XCSoar",
+                            "source %s dest %s",
+                            src_filename.c_str(),
+                            dest_filename.c_str());
+        }
+      }
+                          
+    }
+#endif
+
+  }
 }
