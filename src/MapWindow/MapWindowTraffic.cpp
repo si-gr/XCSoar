@@ -11,6 +11,7 @@
 #include "FLARM/Friends.hpp"
 #include "Tracking/SkyLines/Data.hpp"
 #include "util/StringCompare.hxx"
+#include "time/Zone.hxx"
 
 /**
  * Draws the FLARM traffic icons onto the given canvas
@@ -241,3 +242,101 @@ MapWindow::DrawSkyLinesTraffic(Canvas &canvas) const
 }
 
 #endif
+
+void
+MapWindow::DrawJETProviderTraffic(Canvas &canvas,
+  const PixelPoint aircraft_pos) const
+{
+  if (jet_provider_data == nullptr || jet_provider_data->traffics.empty()) {
+    return;
+  }
+
+  const WindowProjection &projection = render_projection;
+
+  canvas.Select(*traffic_look.font);
+  
+  const std::lock_guard lock{jet_provider_data->mutex};
+  // Circle through the FLARM targets
+  for (auto it = jet_provider_data->traffics.begin(),
+      end = jet_provider_data->traffics.end();
+      it != end; ++it) {
+    const auto &traffic = (*it);
+
+    auto color = FlarmColor::GREEN;
+    
+    auto time_since_update = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() - traffic->epoch;
+    if (time_since_update > 60){
+      color = FlarmColor::BLUE;
+    }
+    if (time_since_update > 180){
+      color = FlarmColor::YELLOW;
+    }
+    if (time_since_update > 600){
+      color = FlarmColor::MAGENTA;
+    }
+    if (time_since_update > 1200){
+      return;
+    }
+
+    // Save the location of the FLARM target
+    GeoPoint target_loc = traffic->location;
+
+    // Points for the screen coordinates for the icon, name and average climb
+    PixelPoint sc, sc_name, sc_bottom;
+
+    // If FLARM target not on the screen, move to the next one
+    if (auto p = projection.GeoToScreenIfVisible(target_loc))
+      sc = *p;
+    else
+      continue;
+
+    // Draw the name 16 points below the icon
+    sc_name = sc;
+    sc_name.y -= Layout::Scale(20);
+    sc_name.x -= Layout::Scale(6);
+
+    // Draw the average climb value above the icon
+    sc_bottom = sc;
+    sc_bottom.y += Layout::Scale(10);
+    sc_bottom.x -= Layout::Scale(6);
+
+    TextInBoxMode mode;
+    mode.shape = LabelShape::OUTLINED;
+
+    int dx = sc_bottom.x - aircraft_pos.x;
+    int dy = sc_bottom.y - aircraft_pos.y;
+    
+
+    // only draw labels if not close to aircraft
+    if (dx * dx + dy * dy > Layout::Scale(5 * 5)) {
+      if (traffic->type && !StringIsEmpty(traffic->type) && traffic->name && !StringIsEmpty(traffic->name) && traffic->vspeed && traffic->altitude)
+        TextInBox(canvas, traffic->name, sc_name,
+                  mode, GetClientRect());
+
+      char second_text[32];
+      TCHAR altitude_text[16];
+      FormatUserAltitude(traffic->altitude, altitude_text, false);
+      if (abs(traffic->vspeed) >= 0.1) {
+        // If average climb data available draw it to the canvas
+        TCHAR vspeed_text[16];
+        FormatUserVerticalSpeed(traffic->vspeed,vspeed_text, false, true);
+        StringFormat(second_text, 32, "%s %s", altitude_text , vspeed_text);
+      } else {
+        StringFormat(second_text, 32, "%s", altitude_text);
+      }
+      TextInBox(canvas, second_text, sc_bottom, mode, GetClientRect());
+    }
+    
+    
+    FlarmTraffic t;
+    if (jet_provider_data->success) {
+      t.alarm_level = FlarmTraffic::AlarmType::NONE;
+    } else {
+      t.alarm_level = FlarmTraffic::AlarmType::OFFLINE;
+    }
+    TrafficRenderer::Draw(canvas, traffic_look, t,
+                          Angle::Degrees(traffic->track) - projection.GetScreenAngle(),
+                          color, sc);
+  }
+
+}
