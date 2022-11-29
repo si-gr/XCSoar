@@ -119,7 +119,7 @@ NMEAParser::ParseLine(const char *string, NMEAInfo &info)
 
     // Garmin altitude sentence
     if (type2 == "PGRMZ"sv)
-      return RMZ(line, info);
+      return false; // RMZ(line, info);
 
     return false;
   }
