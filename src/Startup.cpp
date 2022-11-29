@@ -636,9 +636,9 @@ Startup(UI::Display &display)
   if (map_window != nullptr)
     map_window->SetSkyLinesData(&net_components->tracking->GetSkyLinesData());
 #endif
-#endif
+  if (map_window != nullptr)
+    map_window->SetJETProviderData(&net_components->tracking->GetJETProviderData());
 
-#ifdef HAVE_HTTP
   if (map_window != nullptr)
     map_window->SetThermalInfoMap(net_components->tim.get());
 #endif

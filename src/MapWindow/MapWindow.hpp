@@ -18,6 +18,7 @@
 #include "Renderer/TrailRenderer.hpp"
 #include "Weather/Features.hpp"
 #include "Tracking/SkyLines/Features.hpp"
+#include "Tracking/JETProvider/JETProvider.hpp"
 
 #include <memory>
 
@@ -142,6 +143,8 @@ protected:
   const TIM::Glue *tim_glue = nullptr;
 #endif
 
+  const JETProvider::Data *jet_provider_data = nullptr;
+
   bool compass_visible = true;
 
 #ifndef ENABLE_OPENGL
@@ -239,6 +242,10 @@ public:
   }
 #endif
 
+  void SetJETProviderData(const JETProvider::Data *_data) noexcept {
+    jet_provider_data = _data;
+  }
+
   void FlushCaches() noexcept;
 
   using MapWindowBlackboard::ReadBlackboard;
@@ -296,7 +303,9 @@ protected:
   void DrawGlideThroughTerrain(Canvas &canvas) const noexcept;
   void DrawTerrainAbove(Canvas &canvas) noexcept;
   void DrawFLARMTraffic(Canvas &canvas, PixelPoint aircraft_pos) const noexcept;
-  void DrawGLinkTraffic(Canvas &canvas) const noexcept;
+  void DrawGLinkTraffic(Canvas &canvas, PixelPoint aircraft_pos) const noexcept;
+  void DrawJETProviderTraffic(Canvas &canvas,
+                              const PixelPoint aircraft_pos) const noexcept;
 
   // thread, main functions
   /**

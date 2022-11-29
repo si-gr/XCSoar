@@ -271,11 +271,13 @@ MapWindow::Render(Canvas &canvas, const PixelRect &rc) noexcept
   DrawSkyLinesTraffic(canvas);
 #endif
 
-  DrawGLinkTraffic(canvas);
+  DrawGLinkTraffic(canvas, aircraft_pos);
 
   DrawTeammate(canvas);
 
   DrawFLARMTraffic(canvas, aircraft_pos);
+
+  DrawJETProviderTraffic(canvas, aircraft_pos);
 
   //////////////////////////////////////////////// own aircraft
   // Finally, draw you!

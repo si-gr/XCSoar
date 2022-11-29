@@ -28,7 +28,6 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
     { 4, 6 },
     { 0, 3 },
   };
-
   // Rotate and shift the arrow to the right position and angle
   PolygonRotateShift(arrow, pt, angle, Layout::Scale(100U));
 
@@ -66,6 +65,9 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
       } else {
         canvas.Select(traffic_look.safe_below_brush);
       }
+      break;
+    case FlarmTraffic::AlarmType::OFFLINE:
+      canvas.Select(traffic_look.offline_brush);
       break;
     }
 
