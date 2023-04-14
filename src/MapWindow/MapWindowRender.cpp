@@ -55,8 +55,12 @@ MapWindow::RenderRasp(Canvas &canvas)
 #endif
     rasp_renderer.reset(new RaspRenderer(*rasp_store, state.map));
   }
-
-  rasp_renderer->SetTime(state.time);
+  if (!state.time.IsPlausible()) {
+    // invalid time means "now"
+    rasp_renderer->SetTime(BrokenTime(BrokenDateTime::NowUTC()));
+  } else {
+    rasp_renderer->SetTime(state.time);
+  }
 
   {
     QuietOperationEnvironment operation;
