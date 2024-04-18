@@ -222,7 +222,7 @@ public class NonGPSSensors
       if (enabled_sensors_[id] && default_sensors_[id] != null) {
         Log.d(TAG, "Subscribing to sensor ID " + id + " (" + default_sensors_[id].getName() + ")");
         sensor_manager_.registerListener(this, default_sensors_[id],
-                                         sensor_manager_.SENSOR_DELAY_NORMAL);
+                                         sensor_manager_.SENSOR_DELAY_FASTEST);
       }
     }
     Log.d(TAG, "Done updating non-GPS sensor subscriptions...");

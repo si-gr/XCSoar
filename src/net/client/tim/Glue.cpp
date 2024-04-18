@@ -7,6 +7,9 @@
 #include "NMEA/Info.hpp"
 #include "lib/curl/Global.hxx"
 #include "LogFile.hpp"
+#include "Projection/WindowProjection.hpp"
+#include "MapWindow/GlueMapWindow.hpp"
+#include "UIGlobals.hpp"
 
 namespace TIM {
 
@@ -21,9 +24,9 @@ Glue::~Glue() noexcept = default;
 void
 Glue::OnTimer(const NMEAInfo &basic) noexcept
 {
-  if (!basic.gps.real || !basic.location_available)
+  //if (!basic.gps.real || !basic.location_available)
     /* we need a real GPS location */
-    return;
+    //return;
 
   if (inject_task)
     /* still running */
@@ -39,9 +42,15 @@ Glue::OnTimer(const NMEAInfo &basic) noexcept
 
 Co::InvokeTask
 Glue::Start(const GeoPoint &location)
-{
+{ //LogDebug("TIM downloading thermals");
+  const GlueMapWindow *map = UIGlobals::GetMap();
+  MapWindowProjection projection = map->VisibleProjection();
+  auto request_location = projection.GetGeoScreenCenter();
+  if (!projection.IsValid()) {
+    request_location = location;
+  }
   new_thermals = co_await GetThermals(curl, std::chrono::hours(1),
-                                      location, 20);
+                                      request_location, 40);
 }
 
 void

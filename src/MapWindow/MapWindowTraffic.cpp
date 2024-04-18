@@ -35,8 +35,8 @@ MapWindow::DrawFLARMTraffic(Canvas &canvas,
   // if zoomed in too far out, dont draw traffic since it will be too close to
   // the glider and so will be meaningless (serves only to clutter, cant help
   // the pilot)
-  if (projection.GetMapScale() > 7300)
-    return;
+  //if (projection.GetMapScale() > 7300)
+  //  return;
 
   canvas.Select(*traffic_look.font);
 
@@ -83,13 +83,20 @@ MapWindow::DrawFLARMTraffic(Canvas &canvas,
         TextInBox(canvas, traffic.name, sc_name,
                   mode, GetClientRect());
 
-      if (traffic.climb_rate_avg30s >= 0.1) {
+      //if (traffic.climb_rate_avg30s >= 0.1) {
         // If average climb data available draw it to the canvas
-        TCHAR label_avg[100];
-        FormatUserVerticalSpeed(traffic.climb_rate_avg30s,
-                                       label_avg, false);
-        TextInBox(canvas, label_avg, sc_av, mode, GetClientRect());
-      }
+      TCHAR label_avg[100];
+      char second_text[32];
+      
+      
+      TCHAR altitude_text[16];
+      FormatUserAltitude(traffic.altitude, altitude_text, false);
+      FormatUserVerticalSpeed(traffic.climb_rate_avg30s,
+                                      label_avg, false);
+                                      
+      StringFormat(second_text, 32, "F%sm %s", altitude_text , label_avg);
+      TextInBox(canvas, second_text, sc_av, mode, GetClientRect());
+      //}
     }
 
     auto color = FlarmFriends::GetFriendColor(traffic.id);
@@ -308,7 +315,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
     
 
     // only draw labels if not close to aircraft
-    if (dx * dx + dy * dy > Layout::Scale(5 * 5)) {
+    if (dx * dx + dy * dy > 1) {
       if (traffic->type && !StringIsEmpty(traffic->type) && traffic->name && !StringIsEmpty(traffic->name) && traffic->vspeed && traffic->altitude)
         TextInBox(canvas, traffic->name, sc_name,
                   mode, GetClientRect());
@@ -320,7 +327,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
         // If average climb data available draw it to the canvas
         TCHAR vspeed_text[16];
         FormatUserVerticalSpeed(traffic->vspeed,vspeed_text, false, true);
-        StringFormat(second_text, 32, "%s %s", altitude_text , vspeed_text);
+        StringFormat(second_text, 32, "%sm %s", altitude_text , vspeed_text);
       } else {
         StringFormat(second_text, 32, "%s", altitude_text);
       }
