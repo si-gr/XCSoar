@@ -32,7 +32,7 @@ tag_invoke(boost::json::value_to_tag<Thermal>,
 {
   const auto &json = jv.as_object();
   Thermal thermal;
-  thermal.time = std::chrono::system_clock::from_time_t(json.at("time").to_number<uint64_t>());
+  thermal.time = std::chrono::system_clock::from_time_t((uint64_t)(json.at("time").to_number<uint64_t>() / 1000));
   thermal.location = boost::json::value_to<GeoPoint>(jv);
   thermal.climb_rate = json.at("climbRate").to_number<double>();
   return thermal;
