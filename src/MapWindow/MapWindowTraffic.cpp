@@ -50,18 +50,31 @@ DrawFlarmTraffic(Canvas &canvas, const WindowProjection &projection,
                 mode, projection.GetScreenRect());
     }
 
-    if (!fading && traffic.climb_rate_avg30s >= 0.1) {
-      // If average climb data available draw it to the canvas
+    TCHAR altitude_text[32];
+    TCHAR climb_text[32];
+    TCHAR lower_text[64];
 
-      // Draw the average climb value above the icon
-      auto sc_av = sc;
-      sc_av.y += Layout::Scale(5);
-
-      TextInBox(canvas,
-                FormatUserVerticalSpeed(traffic.climb_rate_avg30s, false),
-                sc_av, mode,
-                projection.GetScreenRect());
+    if(traffic.climb_rate_avg30s_available){
+      FormatUserVerticalSpeed(traffic.climb_rate_avg30s,climb_text, false, true);
+    }else{
+      FormatUserVerticalSpeed(traffic.climb_rate,climb_text, false, true);
     }
+    FormatUserAltitude(traffic.altitude, altitude_text, false);
+
+    if(fading){
+      StringFormat(lower_text, 64, "F%sm %s", altitude_text , climb_text);
+    } else {
+      StringFormat(lower_text, 64, "F%sm %s", altitude_text , climb_text);
+    }
+
+    // Draw the average climb value above the icon
+    auto sc_av = sc;
+    sc_av.y += Layout::Scale(5);
+
+    TextInBox(canvas,
+              lower_text,
+              sc_av, mode,
+              projection.GetScreenRect());
   }
 
   auto color = FlarmFriends::GetFriendColor(traffic.id);
@@ -88,11 +101,6 @@ MapWindow::DrawFLARMTraffic(Canvas &canvas,
 
   const WindowProjection &projection = render_projection;
 
-  // if zoomed in too far out, dont draw traffic since it will be too close to
-  // the glider and so will be meaningless (serves only to clutter, cant help
-  // the pilot)
-  if (projection.GetMapScale() > 7300)
-    return;
 
   canvas.Select(*traffic_look.font);
 
@@ -258,7 +266,7 @@ MapWindow::DrawSkyLinesTraffic(Canvas &canvas) const noexcept
 
 void
 MapWindow::DrawJETProviderTraffic(Canvas &canvas,
-  const PixelPoint aircraft_pos) const
+  const PixelPoint aircraft_pos) const noexcept
 {
   if (jet_provider_data == nullptr || jet_provider_data->traffics.empty()) {
     return;
@@ -321,7 +329,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
     
 
     // only draw labels if not close to aircraft
-    if (dx * dx + dy * dy > Layout::Scale(5 * 5)) {
+    if (dx * dx + dy * dy > 1) {
       if (traffic->type && !StringIsEmpty(traffic->type) && traffic->name && !StringIsEmpty(traffic->name) && traffic->vspeed && traffic->altitude)
         TextInBox(canvas, traffic->name, sc_name,
                   mode, GetClientRect());
@@ -333,7 +341,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
         // If average climb data available draw it to the canvas
         TCHAR vspeed_text[16];
         FormatUserVerticalSpeed(traffic->vspeed,vspeed_text, false, true);
-        StringFormat(second_text, 32, "%s %s", altitude_text , vspeed_text);
+        StringFormat(second_text, 32, "%sm %s", altitude_text , vspeed_text);
       } else {
         StringFormat(second_text, 32, "%s", altitude_text);
       }
@@ -343,7 +351,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
     
     FlarmTraffic t;
     t.alarm_level = FlarmTraffic::AlarmType::LOW;
-    TrafficRenderer::Draw(canvas, traffic_look, t,
+    TrafficRenderer::Draw(canvas, traffic_look, false, t,
                           Angle::Degrees(traffic->track) - projection.GetScreenAngle(),
                           color, sc);
   }
