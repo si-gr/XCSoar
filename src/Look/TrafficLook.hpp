@@ -23,6 +23,20 @@ struct TrafficLook {
   Brush warning_in_altitude_range_brush;
   Brush alarm_brush;
 
+  
+  static constexpr Brush flarm_brushes[10] = {
+    Brush(Color(0, 0, 255)),
+    Brush(Color(0, 113, 255)),
+    Brush(Color(0, 227, 255)),
+    Brush(Color(0, 255, 170)),
+    Brush(Color(0, 255, 57)),
+    Brush(Color(57, 255, 0)),
+    Brush(Color(170, 255, 0)),
+    Brush(Color(255, 227, 0)),
+    Brush(Color(255, 113, 0)),
+    Brush(Color(255, 0, 0))
+  };
+
   static constexpr Color fading_outline_color = ColorWithAlpha({0x60, 0x60, 0x60}, 0xa0);
   Pen fading_pen;
 

@@ -330,7 +330,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
 
     // only draw labels if not close to aircraft
     if (dx * dx + dy * dy > 1) {
-      if (traffic->type && !StringIsEmpty(traffic->type) && traffic->name && !StringIsEmpty(traffic->name) && traffic->vspeed && traffic->altitude)
+      if (traffic->type && !StringIsEmpty(traffic->type) && traffic->name && !StringIsEmpty(traffic->name) && traffic->altitude)
         TextInBox(canvas, traffic->name, sc_name,
                   mode, GetClientRect());
 
@@ -351,6 +351,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
     
     FlarmTraffic t;
     t.alarm_level = FlarmTraffic::AlarmType::LOW;
+    t.climb_rate = traffic->vspeed;
     TrafficRenderer::Draw(canvas, traffic_look, false, t,
                           Angle::Degrees(traffic->track) - projection.GetScreenAngle(),
                           color, sc);

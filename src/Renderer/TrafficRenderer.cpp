@@ -29,6 +29,19 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
     { 0, 3 },
   };
 
+  /*const uint8_t color_wheel[10][3] = {
+  {0, 0, 255},
+  {0, 113, 255},
+  {0, 227, 255},
+  {0, 255, 170},
+  {0, 255, 57},
+  {57, 255, 0},
+  {170, 255, 0},
+  {255, 227, 0},
+  {255, 113, 0},
+  {255, 0, 0}};*/
+
+
   // Rotate and shift the arrow to the right position and angle
   PolygonRotateShift(arrow, pt, angle, Layout::Scale(100U));
 
@@ -48,8 +61,11 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
 #endif
     canvas.DrawPolygon(arrow, ARRAY_SIZE(arrow));
   } else {
+    auto color_i = std::max(std::min(int(traffic.climb_rate / 5.f * 10), 9), 0);
+    //Color(color_wheel[color_i][0], color_wheel[color_i][1], color_wheel[color_i][2]);
+    canvas.Select(TrafficLook::flarm_brushes[color_i]);
     // Select brush depending on AlarmLevel
-    switch (traffic.alarm_level) {
+    /*switch (traffic.alarm_level) {
     case FlarmTraffic::AlarmType::LOW:
     case FlarmTraffic::AlarmType::INFO_ALERT:
       canvas.Select(traffic_look.warning_brush);
@@ -67,7 +83,7 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
         canvas.Select(traffic_look.safe_below_brush);
       }
       break;
-    }
+    }*/
 
     // Select black pen
     canvas.SelectBlackPen();

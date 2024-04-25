@@ -12,6 +12,7 @@
 #include "Renderer/LabelBlock.hpp"
 #include "Screen/StopWatch.hpp"
 #include "MapWindowBlackboard.hpp"
+#include "Screen/Layout.hpp"
 #include "Renderer/AirspaceLabelRenderer.hpp"
 #include "Renderer/BackgroundRenderer.hpp"
 #include "Renderer/WaypointRenderer.hpp"
@@ -118,6 +119,20 @@ protected:
 #endif
 
   const TrafficLook &traffic_look;
+
+  
+  static constexpr Pen thermal_pens[10] = {
+    Pen(4, Color(0, 0, 255)),
+    Pen(4, Color(0, 113, 255)),
+    Pen(4, Color(0, 227, 255)),
+    Pen(4, Color(0, 255, 170)),
+    Pen(4, Color(0, 255, 57)),
+    Pen(4, Color(57, 255, 0)),
+    Pen(4, Color(170, 255, 0)),
+    Pen(4, Color(255, 227, 0)),
+    Pen(4, Color(255, 113, 0)),
+    Pen(4, Color(255, 0, 0))
+    };
 
   BackgroundRenderer background;
   WaypointRenderer waypoint_renderer;

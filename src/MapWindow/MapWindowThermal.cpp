@@ -43,17 +43,6 @@ MapWindow::DrawThermalEstimate(Canvas &canvas) const noexcept
   const DerivedInfo &calculated = Calculated();
   const ThermalLocatorInfo &thermal_locator = calculated.thermal_locator;
 
-  const uint8_t color_wheel[10][3] = {
-  {0, 0, 255},
-  {0, 113, 255},
-  {0, 227, 255},
-  {0, 255, 170},
-  {0, 255, 57},
-  {57, 255, 0},
-  {170, 255, 0},
-  {255, 227, 0},
-  {255, 113, 0},
-  {255, 0, 0}};
 
   if (render_projection.GetMapScale() > 10000)
     return;
@@ -89,7 +78,7 @@ MapWindow::DrawThermalEstimate(Canvas &canvas) const noexcept
         const auto diff = std::chrono::system_clock::now() - i.time;
         auto color_i = std::min(int(i.climb_rate / 5.f * 10), 9);
         canvas.SelectHollowBrush();
-        canvas.Select(Pen(Layout::FastScale(2), Color(color_wheel[color_i][0], color_wheel[color_i][1], color_wheel[color_i][2])));
+        canvas.Select(MapWindow::thermal_pens[color_i]);//Pen(Layout::FastScale(2), Color(color_wheel[color_i][0], color_wheel[color_i][1], color_wheel[color_i][2])));
         canvas.DrawCircle(*p, Layout::FastScale(std::max(10 - int(std::chrono::round<std::chrono::seconds>(diff).count() / 200), 1)));
         TextInBox(canvas, thermal_text, text_point, mode, GetClientRect());
       }
