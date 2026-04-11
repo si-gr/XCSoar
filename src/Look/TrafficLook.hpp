@@ -25,6 +25,21 @@ struct TrafficLook {
   Brush alarm_brush;
   Brush offline_brush;
 
+  static constexpr Color climb_color[10] = {
+    Color(0, 0, 255),
+    Color(0, 113, 255),
+    Color(0, 227, 255),
+    Color(0, 255, 170),
+    Color(0, 255, 57),
+    Color(57, 255, 0),
+    Color(170, 255, 0),
+    Color(255, 227, 0),
+    Color(255, 113, 0),
+    Color(255, 0, 0)
+  };
+
+  Brush brushes[10];
+
   static constexpr Color fading_outline_color = ColorWithAlpha({0x60, 0x60, 0x60}, 0xa0);
   Pen fading_pen;
 

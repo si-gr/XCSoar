@@ -20,5 +20,8 @@ public:
   double Average30s(FlarmId flarmId, TimeStamp curTime,
                     double curAltitude) noexcept;
 
+  double Average2min(FlarmId flarmId, TimeStamp curTime,
+                     double curAltitude) noexcept;
+
   void CleanUp(TimeStamp now) noexcept;
 };

@@ -7,7 +7,7 @@
 
 class ClimbAverageCalculator
 {
-  static constexpr int MAX_HISTORY = 40;
+  static constexpr int MAX_HISTORY = 150;
   struct HistoryItem
   {
     TimeStamp time;

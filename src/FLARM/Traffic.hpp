@@ -82,6 +82,9 @@ struct FlarmTraffic {
   /** Average climb rate over 30s */
   double climb_rate_avg30s;
 
+  /** Average climb rate over 2 minutes */
+  double climb_rate_avg2min;
+
   /** Latitude-based distance of the FLARM target */
   double relative_north;
 
@@ -155,6 +158,9 @@ struct FlarmTraffic {
 
   /** Has the averaged climb rate of the target been calculated yet? */
   bool climb_rate_avg30s_available;
+
+  /** Has the 2-minute averaged climb rate been calculated yet? */
+  bool climb_rate_avg2min_available;
 
   /** Was the RSSI value received from the device? */
   bool rssi_available;

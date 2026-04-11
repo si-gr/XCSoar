@@ -57,15 +57,12 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
     case FlarmTraffic::AlarmType::URGENT:
       canvas.Select(traffic_look.alarm_brush);
       break;
-    case FlarmTraffic::AlarmType::NONE:
-      if (traffic.relative_altitude > (const RoughAltitude)50) {
-        canvas.Select(traffic_look.safe_above_brush);
-      } else if (traffic.relative_altitude > (const RoughAltitude)-50) {
-        canvas.Select(traffic_look.warning_in_altitude_range_brush);
-      } else {
-        canvas.Select(traffic_look.safe_below_brush);
-      }
+    case FlarmTraffic::AlarmType::NONE: {
+      auto color_i = std::min(std::max(int(traffic.climb_rate_avg2min / 0.5f), 0), 9);
+      auto brush = traffic_look.brushes[color_i];
+      canvas.Select(brush);
       break;
+    }
     case FlarmTraffic::AlarmType::OFFLINE:
       canvas.Select(traffic_look.offline_brush);
       break;

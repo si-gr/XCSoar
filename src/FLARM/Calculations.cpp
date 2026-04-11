@@ -11,10 +11,18 @@ FlarmCalculations::Average30s(FlarmId id, TimeStamp time,
   return item.GetAverage(time, altitude, std::chrono::seconds{30});
 }
 
+double
+FlarmCalculations::Average2min(FlarmId id, TimeStamp time,
+                               double altitude) noexcept
+{
+  ClimbAverageCalculator &item = averageCalculatorMap[id];
+  return item.GetAverage(time, altitude, std::chrono::minutes{2});
+}
+
 void
 FlarmCalculations::CleanUp(TimeStamp now) noexcept
 {
-  constexpr FloatDuration MAX_AGE = std::chrono::minutes{1};
+  constexpr FloatDuration MAX_AGE = std::chrono::minutes{3};
 
   // Iterate through ClimbAverageCalculators and remove expired ones
   for (auto it = averageCalculatorMap.begin(),

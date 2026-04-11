@@ -81,6 +81,11 @@ FlarmComputer::Process(FlarmData &flarm, const FlarmData &last_flarm,
       traffic.climb_rate_avg30s =
         flarm_calculations.Average30s(traffic.id, basic.time, traffic.altitude);
 
+    traffic.climb_rate_avg2min_available = traffic.altitude_available;
+    if (traffic.climb_rate_avg2min_available)
+      traffic.climb_rate_avg2min =
+        flarm_calculations.Average2min(traffic.id, basic.time, traffic.altitude);
+
     // The following calculations are only relevant for targets
     // where information is missing
     if (traffic.track_received && traffic.turn_rate_received &&

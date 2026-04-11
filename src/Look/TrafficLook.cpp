@@ -10,6 +10,8 @@ constexpr Color TrafficLook::team_color_magenta;
 constexpr Color TrafficLook::team_color_blue;
 constexpr Color TrafficLook::team_color_yellow;
 
+constexpr Color TrafficLook::climb_color[10];
+
 void
 TrafficLook::Initialise(const Font &_font)
 {
@@ -19,6 +21,9 @@ TrafficLook::Initialise(const Font &_font)
   warning_in_altitude_range_brush.Create(warning_in_altitude_range_color);
   alarm_brush.Create(alarm_color);
   offline_brush.Create(offline_color);
+
+  for (int i = 0; i < 10; i++)
+    brushes[i].Create(climb_color[i]);
   unsigned width = Layout::ScalePenWidth(1);
 
   fading_pen.Create(Pen::Style::DASH1, Layout::ScalePenWidth(1),
