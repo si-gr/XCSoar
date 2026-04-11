@@ -42,15 +42,14 @@ void JETProviderConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &r
 
   RowFormWidget::Prepare(parent, rc);
 
-  AddMultiLine(_("Token gibts bei Azubi"));
-  AddMultiLine(_("Token gibts bei Azubi"));
-  AddMultiLine(_("Token gibts bei Azubi"));
-
   AddBoolean(_("Radar Enabled"),
     nullptr,
     settings.radar.enabled);
-  SetExpertRow(RADAR_ENABLED);
-
+ 
+  AddText(_("Access Token"),
+    nullptr,
+    settings.radar.access_token);
+  
   if(settings.radar.access_token.Contains("JIM") || settings.radar.access_token.Contains("DEV")) {
     AddDuration(_("Interval"), nullptr,
       std::chrono::seconds{1},
@@ -67,11 +66,6 @@ void JETProviderConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &r
       2);
   }
   SetExpertRow(RADAR_INTERVAL);
- 
-  AddText(_("Access Token"),
-    nullptr,
-    settings.radar.access_token);
-  SetExpertRow(RADAR_ACCESS_TOKEN);
 }
 
 bool JETProviderConfigPanel::Save(bool &_changed) noexcept {
