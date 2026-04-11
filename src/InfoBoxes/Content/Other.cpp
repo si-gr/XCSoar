@@ -11,6 +11,7 @@
 #include "Language/Language.hpp"
 #include "UIGlobals.hpp"
 #include "Look/Look.hpp"
+#include "Units/Units.hpp"
 
 #ifdef HAVE_BATTERY
 #include "Hardware/PowerInfo.hpp"
@@ -204,4 +205,33 @@ InfoBoxContentNbrSat::HandleClick() noexcept
 {
   dlgStatusShowModal(1);
   return true;
+}
+
+void
+UpdateInfoBoxBankAngle(InfoBoxData &data) noexcept
+{
+  const auto &basic = CommonInterface::Basic();
+
+  if (!basic.attitude.bank_angle_available) {
+    data.SetInvalid();
+    return;
+  }
+
+  const double bank = basic.attitude.bank_angle.Absolute().Degrees();
+  data.FmtValue("{:+.0f}", basic.attitude.bank_angle.Degrees());
+
+  if (basic.ground_speed_available && bank > 1) {
+    const double speed = basic.ground_speed;
+    const double turn_radius = (speed * speed) / (9.81 * tan(bank * M_PI / 180.0));
+    data.FmtComment("{:.0f}", turn_radius);
+  } else {
+    data.SetComment(_("---"));
+  }
+
+  if (bank > 30)
+    data.SetValueColor(2);
+  else if (bank > 20)
+    data.SetValueColor(1);
+  else
+    data.SetValueColor(0);
 }
