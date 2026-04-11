@@ -50,7 +50,7 @@ JAVA_PACKAGE = org.xcsoar
 MANIFEST_TEMPLATE = android/AndroidManifest.xml.template
 
 # Determine package name for manifest based on build flags
-# Priority: FOSS > PLAY > TESTING > default
+# Priority: FOSS > PLAY > TESTING > DEVELOPMENT > default
 ifeq ($(FOSS),y)
 MANIFEST_PACKAGE = org.xcsoar.foss
 MANIFEST_APP_LABEL = @string/app_name
@@ -60,6 +60,9 @@ MANIFEST_APP_LABEL = @string/app_name
 else ifeq ($(TESTING),y)
 MANIFEST_PACKAGE = org.xcsoar.testing
 MANIFEST_APP_LABEL = @string/app_name_testing
+else ifeq ($(DEVELOPMENT),y)
+MANIFEST_PACKAGE = org.xcsoar.dev
+MANIFEST_APP_LABEL = @string/app_name
 else
 MANIFEST_PACKAGE = org.xcsoar
 MANIFEST_APP_LABEL = @string/app_name
