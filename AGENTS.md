@@ -48,5 +48,5 @@ docker run --mount type=bind,source="$(pwd)",target=/opt/xcsoar -i ghcr.io/xcsoa
 
 Always only build Android use the following command:
 ```bash
-docker run --mount type=bind,source="$(pwd)",target=/opt/xcsoar -i ghcr.io/xcsoar/xcsoar/xcsoar-build:latest xcsoar-compile ANDROID USE_CCACHE=y
+docker run --mount type=bind,source="$(pwd)",target=/opt/xcsoar -i ghcr.io/xcsoar/xcsoar/xcsoar-build:latest xcsoar-compile ANDROID USE_CCACHE=y DEVELOPMENT=y
 ```

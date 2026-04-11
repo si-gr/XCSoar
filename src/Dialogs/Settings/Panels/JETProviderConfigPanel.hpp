@@ -43,12 +43,9 @@ public:
 };
 
 enum ControlIndex {
-  RADAR_WARNING_TEXT1,
-  RADAR_WARNING_TEXT2,
-  RADAR_WARNING_TEXT3,
   RADAR_ENABLED,
-  RADAR_INTERVAL,
   RADAR_ACCESS_TOKEN,
+  RADAR_INTERVAL,
 };
 
 std::unique_ptr<Widget> CreateJETProviderConfigPanel();
