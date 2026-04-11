@@ -235,3 +235,50 @@ UpdateInfoBoxBankAngle(InfoBoxData &data) noexcept
   else
     data.SetValueColor(0);
 }
+
+void
+InfoBoxContentBankAngle::Update(InfoBoxData &data) noexcept
+{
+  const auto &basic = CommonInterface::Basic();
+
+  if (!basic.attitude.bank_angle_available) {
+    data.SetInvalid();
+    valid = false;
+    return;
+  }
+
+  valid = true;
+  bank = basic.attitude.bank_angle.Absolute().Degrees();
+  data.FmtValue("{:+.0f}", basic.attitude.bank_angle.Degrees());
+
+  if (basic.ground_speed_available && bank > 1) {
+    const double speed = basic.ground_speed;
+    turn_radius = (speed * speed) / (9.81 * tan(bank * M_PI / 180.0));
+    data.FmtComment("{:.0f}", turn_radius);
+  } else {
+    turn_radius = 0;
+    data.SetComment(_("---"));
+  }
+
+  data.SetCustom((uint64_t)(bank * 100) + (uint64_t)(turn_radius * 10));
+}
+
+void
+InfoBoxContentBankAngle::OnCustomPaint(Canvas &canvas,
+                                       const PixelRect &rc) noexcept
+{
+  if (!valid)
+    return;
+
+  Color bg_color;
+  if (bank < 30)
+    bg_color = COLOR_RED;
+  else if (bank < 40)
+    bg_color = COLOR_YELLOW;
+  else if (bank < 50)
+    bg_color = COLOR_GREEN;
+  else
+    bg_color = COLOR_BLUE;
+
+  canvas.DrawFilledRectangle(rc, bg_color);
+}

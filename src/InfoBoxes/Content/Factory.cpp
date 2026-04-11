@@ -1163,8 +1163,8 @@ static constexpr MetaData meta_data[] = {
   {
     N_("Bank / Turn"),
     N_("Bank"),
-    N_("Current bank angle and turn radius. Background color indicates severity: green (<20°), yellow (20-30°), red (>30°)."),
-    UpdateInfoBoxBankAngle,
+    N_("Current bank angle and turn radius. Background color indicates severity: red (<30°), yellow (30-40°), green (40-50°), blue (>50°)."),
+    IBFHelper<InfoBoxContentBankAngle>::Create,
   },
 
 };

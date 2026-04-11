@@ -42,5 +42,16 @@ public:
   void OnCustomPaint(Canvas &canvas, const PixelRect &rc) noexcept override;
 };
 
+class InfoBoxContentBankAngle final : public InfoBoxContent {
+public:
+  void Update(InfoBoxData &data) noexcept override;
+  void OnCustomPaint(Canvas &canvas, const PixelRect &rc) noexcept override;
+
+private:
+  double bank = 0;
+  double turn_radius = 0;
+  bool valid = false;
+};
+
 void
 UpdateInfoBoxBankAngle(InfoBoxData &data) noexcept;
