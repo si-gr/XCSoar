@@ -5,6 +5,8 @@
 
 #include "InfoBoxes/Content/Base.hpp"
 
+class Color;
+
 void
 UpdateInfoBoxHeartRate(InfoBoxData &data) noexcept;
 
@@ -52,6 +54,3 @@ private:
   double turn_radius = 0;
   bool valid = false;
 };
-
-void
-UpdateInfoBoxBankAngle(InfoBoxData &data) noexcept;
