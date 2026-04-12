@@ -7,6 +7,7 @@
 
 ## Build Commands
 
+Use timeout of 30 minutes for build:
 ```bash
 # Default (android)
 docker run --mount type=bind,source="$(pwd)",target=/opt/xcsoar -i ghcr.io/xcsoar/xcsoar/xcsoar-build:latest xcsoar-compile ANDROID USE_CCACHE=y
@@ -46,7 +47,7 @@ docker run --mount type=bind,source="$(pwd)",target=/opt/xcsoar -i ghcr.io/xcsoa
 
 ## CI Build Targets
 
-Always only build Android use the following command:
+Always only build Android use the following command with a timeout of 30 minutes:
 ```bash
 docker run --mount type=bind,source="$(pwd)",target=/opt/xcsoar -i ghcr.io/xcsoar/xcsoar/xcsoar-build:latest xcsoar-compile ANDROID USE_CCACHE=y DEVELOPMENT=y
 ```
