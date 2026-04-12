@@ -78,6 +78,7 @@ MapWindow::ReadBlackboard(const MoreData &nmea_info,
   MapWindowBlackboard::ReadBlackboard(nmea_info, derived_info);
   ReadComputerSettings(settings_computer);
   ReadMapSettings(settings_map);
+  UpdateJETProviderTracking(jet_provider_data);
 }
 
 unsigned

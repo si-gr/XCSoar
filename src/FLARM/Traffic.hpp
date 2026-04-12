@@ -73,6 +73,21 @@ struct FlarmTraffic {
   /** Location of the FLARM target */
   GeoPoint location;
 
+  /** Location of the FLARM target from 1 minute ago (for movement calculation) */
+  GeoPoint location_1min_ago;
+
+  /** Has location_1min_ago been calculated? */
+  bool location_1min_ago_available;
+
+  /** Position where significant climb was detected */
+  GeoPoint climb_position;
+
+  /** Timestamp when climb position was recorded */
+  TimeStamp climb_position_time;
+
+  /** Has a valid climb position been recorded? */
+  bool climb_position_valid;
+
   /** Turnrate of the FLARM target */
   double turn_rate;
 

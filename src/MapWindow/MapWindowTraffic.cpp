@@ -117,6 +117,22 @@ MapWindow::DrawFLARMTraffic(Canvas &canvas,
                          aircraft_pos, traffic);
     }
   }
+
+  if (const auto &climb_pos = GetClimbPositionTraffic(); !climb_pos.empty()) {
+    for (const auto &[id, traffic] : climb_pos) {
+      if (!traffic.climb_position_valid)
+        continue;
+
+      auto p = projection.GeoToScreenIfVisible(traffic.climb_position);
+      if (!p)
+        continue;
+
+      FlarmTraffic draw_traffic = traffic;
+      draw_traffic.location = traffic.climb_position;
+      DrawFlarmTraffic(canvas, projection, traffic_look, true,
+                       aircraft_pos, draw_traffic);
+    }
+  }
 }
 
 
@@ -273,17 +289,89 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
   const WindowProjection &projection = render_projection;
 
   canvas.Select(*traffic_look.font);
-  
+
   const std::lock_guard lock{jet_provider_data->mutex};
-  // Circle through the FLARM targets
+
+  auto now = std::chrono::duration_cast<std::chrono::seconds>(
+    std::chrono::system_clock::now().time_since_epoch()).count();
+
   for (auto it = jet_provider_data->traffics.begin(),
       end = jet_provider_data->traffics.end();
       it != end; ++it) {
     const auto &traffic = (*it);
 
+    auto time_since_update = now - traffic->epoch;
+    if (time_since_update > 1200) {
+      continue;
+    }
+
+    if (traffic->name == nullptr || StringIsEmpty(traffic->name))
+      continue;
+
+    std::string traffic_name{traffic->name};
+
+    const auto &old_positions = GetJETProviderTraffic1MinAgo();
+    auto old_it = old_positions.find(traffic_name);
+
+    GeoPoint position_1min_ago;
+    bool have_position_1min = false;
+
+    if (old_it != old_positions.end() && old_it->second.location.IsValid()) {
+      auto age = now - static_cast<int64_t>(old_it->second.epoch);
+      if (age >= 60) {
+        position_1min_ago = old_it->second.location;
+        have_position_1min = true;
+      }
+    }
+
+    bool is_stationary = false;
+    if (have_position_1min && traffic->location.IsValid()) {
+      auto distance = traffic->location.Distance(position_1min_ago);
+      is_stationary = distance < 200;
+    }
+
+    FlarmTraffic t;
+    t.location = traffic->location;
+    t.location_available = traffic->location.IsValid();
+
+    if (is_stationary) {
+      t.location_1min_ago = position_1min_ago;
+      t.location_1min_ago_available = true;
+    }
+
+    if (jet_provider_data->success) {
+      t.alarm_level = FlarmTraffic::AlarmType::NONE;
+    } else {
+      t.alarm_level = FlarmTraffic::AlarmType::OFFLINE;
+    }
+
+    if (is_stationary && traffic->vspeed > 0) {
+      t.climb_rate_avg2min = traffic->vspeed;
+
+      const auto &climb_positions = GetJETProviderClimbPositionTraffic();
+      auto climb_it = climb_positions.find(traffic_name);
+
+      if (climb_it != climb_positions.end()) {
+        FlarmTraffic climb_t;
+        climb_t.location = climb_it->second.location;
+        climb_t.location_available = true;
+        climb_t.climb_rate_avg2min = climb_it->second.vspeed;
+        climb_t.climb_position = climb_it->second.location;
+        climb_t.climb_position_time = TimeStamp{std::chrono::duration<double>{static_cast<double>(climb_it->second.epoch)}};
+        climb_t.climb_position_valid = true;
+        climb_t.alarm_level = FlarmTraffic::AlarmType::NONE;
+
+        auto p = projection.GeoToScreenIfVisible(climb_t.climb_position);
+        if (p) {
+          TrafficRenderer::Draw(canvas, traffic_look, true, climb_t,
+                                Angle::Degrees(climb_it->second.track) - projection.GetScreenAngle(),
+                                FlarmColor::GREEN, *p);
+        }
+      }
+    }
+
     auto color = FlarmColor::GREEN;
     
-    auto time_since_update = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() - traffic->epoch;
     if (time_since_update > 60){
       color = FlarmColor::BLUE;
     }
@@ -293,28 +381,20 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
     if (time_since_update > 600){
       color = FlarmColor::MAGENTA;
     }
-    if (time_since_update > 1200){
-      return;
-    }
 
-    // Save the location of the FLARM target
     GeoPoint target_loc = traffic->location;
 
-    // Points for the screen coordinates for the icon, name and average climb
     PixelPoint sc, sc_name, sc_bottom;
 
-    // If FLARM target not on the screen, move to the next one
     if (auto p = projection.GeoToScreenIfVisible(target_loc))
       sc = *p;
     else
       continue;
 
-    // Draw the name 16 points below the icon
     sc_name = sc;
     sc_name.y -= Layout::Scale(20);
     sc_name.x -= Layout::Scale(6);
 
-    // Draw the average climb value above the icon
     sc_bottom = sc;
     sc_bottom.y += Layout::Scale(10);
     sc_bottom.x -= Layout::Scale(6);
@@ -326,7 +406,6 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
     int dy = sc_bottom.y - aircraft_pos.y;
     
 
-    // only draw labels if not close to aircraft
     if (dx * dx + dy * dy > Layout::Scale(5 * 5)) {
       if (traffic->type && !StringIsEmpty(traffic->type) &&
           traffic->name && !StringIsEmpty(traffic->name) &&
@@ -339,7 +418,6 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
 
       char vspeed_text[32]{};
       if (fabs(traffic->vspeed) >= 0.1) {
-        // If average climb data available draw it to the canvas
         FormatUserVerticalSpeed(traffic->vspeed, vspeed_text, false, true);
       }
 
@@ -353,13 +431,6 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
       TextInBox(canvas, second_text, sc_bottom, mode, GetClientRect());
     }
     
-    
-    FlarmTraffic t;
-    if (jet_provider_data->success) {
-      t.alarm_level = FlarmTraffic::AlarmType::NONE;
-    } else {
-      t.alarm_level = FlarmTraffic::AlarmType::OFFLINE;
-    }
     TrafficRenderer::Draw(canvas, traffic_look,
                           /*fading=*/false, t,
                           Angle::Degrees(traffic->track) - projection.GetScreenAngle(),

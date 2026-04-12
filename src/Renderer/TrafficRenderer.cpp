@@ -10,6 +10,7 @@
 #include "Math/Screen.hpp"
 #include "util/Macros.hpp"
 #include "Asset.hpp"
+#include "Geo/GeoPoint.hpp"
 
 #ifdef ENABLE_OPENGL
 #include "ui/canvas/opengl/Scope.hpp"
@@ -58,7 +59,18 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
       canvas.Select(traffic_look.alarm_brush);
       break;
     case FlarmTraffic::AlarmType::NONE: {
-      auto color_i = std::min(std::max(int(traffic.climb_rate_avg2min / 0.5f), 0), 9);
+      bool is_stationary = false;
+      if (traffic.location_1min_ago_available && traffic.location_available) {
+        const auto distance = traffic.location.Distance(traffic.location_1min_ago);
+        is_stationary = distance < 200;
+      }
+
+      int color_i;
+      if (is_stationary && traffic.climb_rate_avg2min > 0) {
+        color_i = std::min(std::max(int(traffic.climb_rate_avg2min / 0.5f), 0), 9);
+      } else {
+        color_i = 0;
+      }
       auto brush = traffic_look.brushes[color_i];
       canvas.Select(brush);
       break;

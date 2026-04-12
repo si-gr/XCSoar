@@ -29,6 +29,8 @@ TrafficLook::Initialise(const Font &_font)
   fading_pen.Create(Pen::Style::DASH1, Layout::ScalePenWidth(1),
                     fading_outline_color);
 
+  climb_position_brush.Create(climb_position_color);
+
 #ifdef ENABLE_OPENGL
   fading_brush.Create(fading_fill_color);
 #endif

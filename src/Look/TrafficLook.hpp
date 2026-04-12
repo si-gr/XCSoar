@@ -43,6 +43,9 @@ struct TrafficLook {
   static constexpr Color fading_outline_color = ColorWithAlpha({0x60, 0x60, 0x60}, 0xa0);
   Pen fading_pen;
 
+  static constexpr Color climb_position_color = ColorWithAlpha({0x00, 0x80, 0x00}, 0x50);
+  Brush climb_position_brush;
+
 #ifdef ENABLE_OPENGL
   static constexpr Color fading_fill_color = ColorWithAlpha({0xc0, 0xc0, 0xc0}, 0x60);
   Brush fading_brush;
