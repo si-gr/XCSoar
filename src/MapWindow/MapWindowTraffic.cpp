@@ -333,7 +333,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
     FlarmTraffic t;
     t.location = traffic->location;
     t.location_available = traffic->location.IsValid();
-
+    t.climb_rate = traffic->vspeed;
     if (is_stationary) {
       t.location_1min_ago = position_1min_ago;
       t.location_1min_ago_available = true;

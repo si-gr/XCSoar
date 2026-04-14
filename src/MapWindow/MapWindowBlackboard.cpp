@@ -43,10 +43,10 @@ MapWindowBlackboard::UpdateJETProviderTracking(const JETProvider::Data *jet_prov
     bool is_stationary = false;
     if (have_position_1min && traffic->location.IsValid()) {
       auto distance = traffic->location.Distance(position_1min_ago);
-      is_stationary = distance < 200;
+      is_stationary = distance < 1000;
     }
 
-    if (is_stationary && traffic->vspeed > 0) {
+    if (is_stationary && std::fabs(traffic->vspeed) > 0.5f) {
       if (auto it = climb_positions.find(traffic_name); it != climb_positions.end()) {
         it->second.location = traffic->location;
         it->second.epoch = traffic->epoch;

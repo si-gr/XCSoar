@@ -62,16 +62,17 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
       bool is_stationary = false;
       if (traffic.location_1min_ago_available && traffic.location_available) {
         const auto distance = traffic.location.Distance(traffic.location_1min_ago);
-        is_stationary = distance < 200;
+        is_stationary = distance < 1000;
       }
 
       int color_i;
       if (is_stationary && traffic.climb_rate_avg2min > 0) {
-        color_i = std::min(std::max(int(traffic.climb_rate_avg2min / 0.5f), 0), 9);
+        color_i = std::min(std::max(int(traffic.climb_rate_avg2min * 2.f), 0), 9);
       } else {
-        color_i = 0;
+        color_i = std::max(std::min(int(traffic.climb_rate * 2.f), 9), 0);
       }
       auto brush = traffic_look.brushes[color_i];
+      
       canvas.Select(brush);
       break;
     }
