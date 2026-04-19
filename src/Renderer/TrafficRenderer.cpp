@@ -20,7 +20,7 @@ void
 TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
                       bool fading,
                       const FlarmTraffic &traffic, const Angle angle,
-                      const FlarmColor color, const PixelPoint pt) noexcept
+                      const FlarmColor color, const PixelPoint pt, float scale) noexcept
 {
   // Create point array that will form that arrow polygon
   BulkPixelPoint arrow[] = {
@@ -30,7 +30,7 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
     { 0, 3 },
   };
   // Rotate and shift the arrow to the right position and angle
-  PolygonRotateShift(arrow, pt, angle, Layout::Scale(100U));
+  PolygonRotateShift(arrow, pt, angle, Layout::Scale(100U) * scale);
 
   if (fading) {
     canvas.Select(traffic_look.fading_pen);
@@ -106,7 +106,7 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
   }
 
   canvas.SelectHollowBrush();
-  canvas.DrawCircle(pt, Layout::FastScale(11u));
+  canvas.DrawCircle(pt, Layout::FastScale(11u) * scale);
 }
 
 

@@ -73,12 +73,12 @@ bool ParseHeader(std::string line, Radar &radar) {
 bool ParseTraffic(std::string line, Radar &radar) {
     std::vector<std::string> items;
     boost::split(items, line, boost::is_any_of(","));
-    if (items.size() != 9) {
+    if (items.size() != 11) {
         LogFormat("RadarParser received invalid %s items.size()=%d", line.c_str(), (int) items.size());
         return false;
     }
-    // a1,deadbeef,50.869501,0.010864,42,1500,300,2,1615771825,744
-    // uid,name,lat,long,track,alt,spd,vspd,epoch,type
+    // a1,deadbeef,50.869501,0.010864,42,1500,300,2,1615771825,744,avg_climb,is_circling
+    // uid,name,lat,long,track,alt,spd,vspd,epoch,type,avg_climb,is_circling
 
     auto traffic = std::make_unique<JETProvider::Data::Traffic>();
     traffic->name = to_c_str(items[0]);
@@ -87,10 +87,12 @@ bool ParseTraffic(std::string line, Radar &radar) {
     traffic->location = GeoPoint(Angle::Degrees(longitude), Angle::Degrees(latitude));
     traffic->track = atoi(items[3].c_str());
     traffic->altitude = atoi(items[4].c_str());
-    traffic->speed = atof(items[5].c_str());
+       traffic->speed = atof(items[5].c_str());
     traffic->vspeed = atof(items[6].c_str());
     traffic->epoch = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     traffic->type = to_c_str(items[8]);
+    traffic->avg_climb = atof(items[9].c_str());
+    traffic->is_circling = (items[10][0] == 'C');
 
     if (traffic->type && traffic->type[0] == 'n'){
         // static object

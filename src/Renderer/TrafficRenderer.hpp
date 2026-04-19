@@ -18,7 +18,7 @@ void
 Draw(Canvas &canvas, const TrafficLook &traffic_look,
      bool fading,
      const FlarmTraffic &traffic, Angle angle,
-     FlarmColor color, PixelPoint pt) noexcept;
+     FlarmColor color, PixelPoint pt, float scale = 1.0f) noexcept;
 
 void
 Draw(Canvas &canvas, const TrafficLook &traffic_look,

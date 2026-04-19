@@ -81,6 +81,43 @@ MapWindowBlackboard::UpdateJETProviderTracking(const JETProvider::Data *jet_prov
       ++it;
     }
   }
+
+  auto &historic_circling = GetJETProviderHistoricCirclingTrafficForUpdate();
+  
+  for (auto &traffic : jet_provider_data->traffics) {
+    if (traffic->name == nullptr || StringIsEmpty(traffic->name))
+      continue;
+
+    std::string traffic_name{traffic->name};
+
+    if (traffic->is_circling && traffic->vspeed > 0.5) {
+      if (auto it = historic_circling.find(traffic_name); it != historic_circling.end()) {
+        it->second.location = traffic->location;
+        it->second.epoch = traffic->epoch;
+      } else {
+        JETProvider::Data::Traffic new_historic;
+        new_historic.name = traffic->name;
+        new_historic.location = traffic->location;
+        new_historic.epoch = traffic->epoch;
+        new_historic.vspeed = traffic->vspeed;
+        new_historic.track = traffic->track;
+        new_historic.altitude = traffic->altitude;
+        new_historic.speed = traffic->speed;
+        new_historic.type = traffic->type;
+        new_historic.is_circling = true;
+        historic_circling.try_emplace(traffic_name, new_historic);
+      }
+    }
+  }
+
+  for (auto it = historic_circling.begin(); it != historic_circling.end();) {
+    auto age = now - static_cast<int64_t>(it->second.epoch);
+    if (age > 300) {
+      it = historic_circling.erase(it);
+    } else {
+      ++it;
+    }
+  }
 }
 
 void

@@ -64,6 +64,7 @@ void TrackingGlue::OnJETTraffic(std::vector<std::unique_ptr<JETProvider::Data::T
   const std::lock_guard lock{jet_provider_data.mutex};
 
   jet_provider_data.success = success;
+  jet_provider_data.last_traffic_count = traffics.size();
   if (success) {
     jet_provider_data.traffics.clear(); // erasing unique ptr -> clearing memory
     for (auto&& traffic : traffics) {

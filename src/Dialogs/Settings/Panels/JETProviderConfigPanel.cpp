@@ -27,6 +27,9 @@ Copyright_License {
 #include "Language/Language.hpp"
 #include "Profile/Keys.hpp"
 #include "Widget/RowFormWidget.hpp"
+#include "Components.hpp"
+#include "NetComponents.hpp"
+#include "Tracking/TrackingGlue.hpp"
 
 #include "Profile/Profile.hpp"
 #include "Form/Edit.hpp"
@@ -66,6 +69,18 @@ void JETProviderConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &r
       2);
   }
   SetExpertRow(RADAR_INTERVAL);
+  
+  // Display the count of the last traffic request result
+  size_t traffic_count = 0;
+  if (net_components != nullptr && net_components->tracking != nullptr) {
+    const auto &jet_data = net_components->tracking->GetJETProviderData();
+    traffic_count = jet_data.last_traffic_count;
+  }
+  StaticString<32> traffic_count_buffer;
+  traffic_count_buffer.UnsafeFormat("%u", (unsigned int)traffic_count);
+  AddText(_("Last Result Count"),
+    _("Number of traffic items received in the last JETTraffic server request."),
+    traffic_count_buffer);
 }
 
 bool JETProviderConfigPanel::Save(bool &_changed) noexcept {

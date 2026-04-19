@@ -52,18 +52,22 @@ struct Data {
     double speed = -1;
     double vspeed = -1;
     const char *type = nullptr;
+    double avg_climb = -1;
+    bool is_circling = false;
 
     Traffic() = default;
     Traffic(const char *_name, uint32_t _epoch, GeoPoint _location,
       int _track, int _altitude, int _speed, int _vspeed,
-      const char *_type)
+      const char *_type, double _avg_climb, bool _is_circling)
     :name(_name), epoch(_epoch), location(_location),
       track(_track), altitude(_altitude),
-      speed(_speed), vspeed(_vspeed), type(_type) {}
+      speed(_speed), vspeed(_vspeed), type(_type),
+      avg_climb(_avg_climb), is_circling(_is_circling) {}
   };
 
   std::vector<std::unique_ptr<JETProvider::Data::Traffic>> traffics;
   bool success = false;
+  size_t last_traffic_count = 0;
 
 };
 

@@ -46,6 +46,7 @@ enum ControlIndex {
   RADAR_ENABLED,
   RADAR_ACCESS_TOKEN,
   RADAR_INTERVAL,
+  RADAR_TRAFFIC_COUNT,
 };
 
 std::unique_ptr<Widget> CreateJETProviderConfigPanel();

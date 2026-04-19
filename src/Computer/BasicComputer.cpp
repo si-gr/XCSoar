@@ -341,28 +341,40 @@ ComputeDynamics(MoreData &basic, const DerivedInfo &calculated) noexcept
       (!calculated.wind_available || calculated.wind.IsZero()))
     return;
 
-  if (!basic.airspeed_available)
+  // Use ground speed as fallback when airspeed is not available
+  if (!basic.airspeed_available && basic.ground_speed <= 0)
     return;
 
   // estimate bank angle (assuming balanced turn)
+  // Use ground speed as fallback when airspeed is not available
+  const auto speed = basic.airspeed_available
+    ? basic.true_airspeed
+    : basic.ground_speed;
   const auto angle = atan((calculated.turn_rate_heading
-      * basic.true_airspeed * INVERSE_G).Radians());
+      * speed * INVERSE_G).Radians());
 
   if (!basic.attitude.bank_angle_available) {
     basic.attitude.bank_angle = Angle::Radians(angle);
-    basic.attitude.bank_angle_available = std::max(basic.attitude.heading_available,
-                                                   basic.airspeed_available);
+    if (basic.attitude.heading_available || basic.airspeed_available)
+      basic.attitude.bank_angle_available.Update(basic.clock);
+    else
+      basic.attitude.bank_angle_available.Clear();
   }
 
   if (!basic.attitude.pitch_angle_available && basic.total_energy_vario_available) {
     // estimate pitch angle (assuming balanced turn)
-    basic.attitude.pitch_angle = Angle::FromXY(basic.true_airspeed,
+    // Use ground speed as fallback when airspeed is not available
+    const auto pitch_speed = basic.airspeed_available
+      ? basic.true_airspeed
+      : basic.ground_speed;
+    basic.attitude.pitch_angle = Angle::FromXY(pitch_speed,
                                                basic.gps_vario - basic.total_energy_vario);
-    basic.attitude.pitch_angle_available = std::max({
-        basic.airspeed_available,
-        basic.gps_vario_available,
-        basic.total_energy_vario_available,
-      });
+    if (basic.airspeed_available ||
+        basic.gps_vario_available ||
+        basic.total_energy_vario_available)
+      basic.attitude.pitch_angle_available.Update(basic.clock);
+    else
+      basic.attitude.pitch_angle_available.Clear();
   }
 
   if (!basic.acceleration.available)

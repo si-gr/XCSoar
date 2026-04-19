@@ -49,6 +49,12 @@ class MapWindowBlackboard:
    */
   std::map<std::string, JETProvider::Data::Traffic> jet_provider_climb_position_traffic;
 
+  /**
+   * JETProvider historic circling positions - remains visible for 5 minutes
+   * at the position where circling was detected, rendered at 25% size.
+   */
+  std::map<std::string, JETProvider::Data::Traffic> jet_provider_historic_circling_traffic;
+
 protected:
   MapWindowBlackboard() noexcept {
     /* this needs to be initialised because ReadBlackboard() uses the
@@ -85,17 +91,26 @@ protected:
     return jet_provider_traffic_1min_ago;
   }
 
+  auto &GetJETProviderTraffic1MinAgoForUpdate() noexcept {
+    return jet_provider_traffic_1min_ago;
+  }
+
   [[gnu::const]]
   const auto &GetJETProviderClimbPositionTraffic() const noexcept {
     return jet_provider_climb_position_traffic;
   }
 
-  auto &GetJETProviderTraffic1MinAgoForUpdate() noexcept {
-    return jet_provider_traffic_1min_ago;
+  [[gnu::const]]
+  const auto &GetJETProviderHistoricCirclingTraffic() const noexcept {
+    return jet_provider_historic_circling_traffic;
   }
 
   auto &GetJETProviderClimbPositionTrafficForUpdate() noexcept {
     return jet_provider_climb_position_traffic;
+  }
+
+  auto &GetJETProviderHistoricCirclingTrafficForUpdate() noexcept {
+    return jet_provider_historic_circling_traffic;
   }
 
   void UpdateJETProviderTracking(const JETProvider::Data *jet_provider_data) noexcept;

@@ -324,19 +324,22 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
       }
     }
 
-    bool is_stationary = false;
-    if (have_position_1min && traffic->location.IsValid()) {
-      auto distance = traffic->location.Distance(position_1min_ago);
-      is_stationary = distance < 200;
-    }
+    // Use JETTraffic server-provided circling status to determine stationary traffic
+    bool is_stationary = traffic->is_circling;
 
     FlarmTraffic t;
     t.location = traffic->location;
     t.location_available = traffic->location.IsValid();
     t.climb_rate = traffic->vspeed;
-    if (is_stationary) {
+    if (is_stationary && have_position_1min) {
       t.location_1min_ago = position_1min_ago;
       t.location_1min_ago_available = true;
+    }
+    
+    // Use average climb from JETTraffic server if available
+    if (traffic->avg_climb >= 0.1) {
+      t.climb_rate_avg30s = traffic->avg_climb;
+      t.climb_rate_avg2min = traffic->avg_climb;
     }
 
     if (jet_provider_data->success) {
@@ -345,9 +348,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
       t.alarm_level = FlarmTraffic::AlarmType::OFFLINE;
     }
 
-    if (is_stationary && traffic->vspeed > 0) {
-      t.climb_rate_avg2min = traffic->vspeed;
-
+    if (is_stationary && traffic->avg_climb > 0) {
       const auto &climb_positions = GetJETProviderClimbPositionTraffic();
       auto climb_it = climb_positions.find(traffic_name);
 
@@ -355,7 +356,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
         FlarmTraffic climb_t;
         climb_t.location = climb_it->second.location;
         climb_t.location_available = true;
-        climb_t.climb_rate_avg2min = climb_it->second.vspeed;
+        climb_t.climb_rate_avg2min = climb_it->second.avg_climb;
         climb_t.climb_position = climb_it->second.location;
         climb_t.climb_position_time = TimeStamp{std::chrono::duration<double>{static_cast<double>(climb_it->second.epoch)}};
         climb_t.climb_position_valid = true;
@@ -437,4 +438,27 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
                           color, sc);
   }
 
+  // Render historic circling positions at 25% size with fading style
+  if (const auto &historic = GetJETProviderHistoricCirclingTraffic(); !historic.empty()) {
+    for (const auto &[name, traffic] : historic) {
+      if (!traffic.location.IsValid())
+        continue;
+
+      FlarmTraffic draw_traffic;
+      draw_traffic.location = traffic.location;
+      draw_traffic.location_available = true;
+      draw_traffic.climb_rate = traffic.vspeed;
+      draw_traffic.climb_rate_avg2min = traffic.avg_climb;
+      draw_traffic.alarm_level = FlarmTraffic::AlarmType::NONE;
+
+      auto p = projection.GeoToScreenIfVisible(draw_traffic.location);
+      if (!p)
+        continue;
+
+      TrafficRenderer::Draw(canvas, traffic_look,
+                            /*fading=*/true, draw_traffic,
+                            Angle::Degrees(traffic.track) - projection.GetScreenAngle(),
+                            FlarmColor::GREEN, *p, 0.25f);
+    }
+  }
 }
