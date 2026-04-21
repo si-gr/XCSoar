@@ -8,52 +8,6 @@
 #include "LogFile.hpp"
 
 void
-MapWindowBlackboard::UpdateJETProviderTracking(const JETProvider::Data *jet_provider_data) noexcept
-{
-  if (jet_provider_data == nullptr || jet_provider_data->traffics.empty()) {
-    return;
-  }
-
-  auto now = std::chrono::duration_cast<std::chrono::seconds>(
-    std::chrono::system_clock::now().time_since_epoch()).count();
-
-  const std::lock_guard lock{jet_provider_data->mutex};
-
-  auto &historic_circling = GetJETProviderHistoricCirclingTrafficForUpdate();
-  
-  for (auto &traffic : jet_provider_data->traffics) {
-    if (traffic->name == nullptr || StringIsEmpty(traffic->name))
-      continue;
-
-    std::string traffic_name{traffic->name};
-
-    if (traffic->is_circling) {
-      JETProvider::Data::Traffic new_historic;
-      new_historic.name = traffic->name;
-      new_historic.location = traffic->location;
-      new_historic.epoch = traffic->epoch;
-      new_historic.vspeed = traffic->vspeed;
-      new_historic.track = traffic->track;
-      new_historic.altitude = traffic->altitude;
-      new_historic.speed = traffic->speed;
-      new_historic.type = traffic->type;
-      new_historic.is_circling = true;
-      historic_circling.try_emplace(traffic_name, new_historic);
-    }
-  }
-  LogDebug("historic_circling length %d ", historic_circling.size());
-
-  for (auto it = historic_circling.begin(); it != historic_circling.end();) {
-    auto age = now - static_cast<int64_t>(it->second.epoch);
-    if (age > 300) {
-      it = historic_circling.erase(it);
-    } else {
-      ++it;
-    }
-  }
-}
-
-void
 MapWindowBlackboard::ReadComputerSettings(const ComputerSettings &settings) noexcept
 {
   computer_settings = settings;

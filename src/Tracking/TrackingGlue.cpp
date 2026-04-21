@@ -8,6 +8,57 @@
 #include "LogFile.hpp"
 #include "util/Macros.hpp"
 #include "Interface.hpp"
+#include "util/StringCompare.hxx"
+
+static void
+UpdateJETProviderTracking(JETProvider::Data *jet_provider_data) noexcept
+{
+  LogDebug("TrackingGlue historic_cirling");
+  if (jet_provider_data == nullptr || jet_provider_data->traffics.empty()) {
+    return;
+  }
+
+  auto now = std::chrono::duration_cast<std::chrono::seconds>(
+    std::chrono::system_clock::now().time_since_epoch()).count();
+
+  const std::lock_guard lock{jet_provider_data->historic_circling_mutex};
+  
+  for (auto &traffic : jet_provider_data->traffics) {
+    if (traffic->name == nullptr || StringIsEmpty(traffic->name))
+      continue;
+
+    std::string traffic_name{traffic->name};
+
+    if (traffic->is_circling) {
+      JETProvider::Data::Traffic new_historic;
+      new_historic.name = traffic->name;
+      new_historic.location = traffic->location;
+      new_historic.epoch = traffic->epoch;
+      new_historic.vspeed = traffic->vspeed;
+      new_historic.track = traffic->track;
+      new_historic.altitude = traffic->altitude;
+      new_historic.speed = traffic->speed;
+      new_historic.type = traffic->type;
+      new_historic.is_circling = true;
+      //jet_provider_data->historic_circling_traffic.try_emplace(traffic_name, new_historic);
+      // emplace with traffic_name + epoch to avoid replacing existing historic circling traffic with new one if same name appears again
+      std::string historic_key = traffic_name + "_" + std::to_string(traffic->epoch);
+      jet_provider_data->historic_circling_traffic.try_emplace(historic_key, new_historic);
+      LogFormat("Added historic circling traffic %s epoch %u", traffic_name.c_str(), traffic->epoch);
+    }
+  }
+  LogFormat("historic_circling length %lu ", jet_provider_data->historic_circling_traffic.size());
+
+  for (auto it = jet_provider_data->historic_circling_traffic.begin(); 
+       it != jet_provider_data->historic_circling_traffic.end();) {
+    auto age = now - static_cast<int64_t>(it->second.epoch);
+    if (age > 300) {
+      it = jet_provider_data->historic_circling_traffic.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
 
 TrackingGlue::TrackingGlue(EventLoop &event_loop,
                            CurlGlobal &curl) noexcept
@@ -96,9 +147,10 @@ void TrackingGlue::OnJETTraffic(std::vector<std::unique_ptr<JETProvider::Data::T
     
   }
 
-  // 3) Update status and last traffic count
   jet_provider_data.success = success;
   jet_provider_data.last_traffic_count = static_cast<uint32_t>(jet_provider_data.traffics.size());
+
+  UpdateJETProviderTracking(&jet_provider_data);
 
   LogFormat("OnJETTraffic size:%d success:%d replaced counter:%d",
     (int) jet_provider_data.traffics.size(), success, removeCounter);

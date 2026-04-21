@@ -117,22 +117,6 @@ MapWindow::DrawFLARMTraffic(Canvas &canvas,
                          aircraft_pos, traffic);
     }
   }
-
-  if (const auto &climb_pos = GetClimbPositionTraffic(); !climb_pos.empty()) {
-    for (const auto &[id, traffic] : climb_pos) {
-      if (!traffic.climb_position_valid)
-        continue;
-
-      auto p = projection.GeoToScreenIfVisible(traffic.climb_position);
-      if (!p)
-        continue;
-
-      FlarmTraffic draw_traffic = traffic;
-      draw_traffic.location = traffic.climb_position;
-      DrawFlarmTraffic(canvas, projection, traffic_look, true,
-                       aircraft_pos, draw_traffic);
-    }
-  }
 }
 
 
@@ -395,7 +379,8 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
   }
 
   // Render historic circling positions at 25% size with fading style
-  if (const auto &historic = GetJETProviderHistoricCirclingTraffic(); !historic.empty()) {
+  const std::lock_guard historic_lock{jet_provider_data->historic_circling_mutex};
+  if (const auto &historic = jet_provider_data->historic_circling_traffic; !historic.empty()) {
     
     for (const auto &[name, traffic] : historic) {
       if (!traffic.location.IsValid())
@@ -413,9 +398,9 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
         continue;
 
       TrafficRenderer::Draw(canvas, traffic_look,
-                            /*fading=*/true, draw_traffic,
+                            /*fading=*/false, draw_traffic,
                             Angle::Degrees(traffic.track) - projection.GetScreenAngle(),
-                            FlarmColor::GREEN, *p, 0.25f);
+                            FlarmColor::NONE, *p, 0.25f);
     }
   }
 }

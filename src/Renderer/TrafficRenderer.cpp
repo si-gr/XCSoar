@@ -80,9 +80,13 @@ TrafficRenderer::Draw(Canvas &canvas, const TrafficLook &traffic_look,
       canvas.Select(traffic_look.offline_brush);
       break;
     }
-
+    
     // Select black pen
     canvas.SelectBlackPen();
+
+    if (color== FlarmColor::NONE) {
+      canvas.SelectNullPen();
+    }
 
     // Draw the arrow
     canvas.DrawPolygon(arrow, ARRAY_SIZE(arrow));

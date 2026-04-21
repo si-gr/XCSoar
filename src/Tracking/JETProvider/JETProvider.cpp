@@ -101,7 +101,7 @@ JETProvider::Glue::CoTick(const NMEAInfo &basic) noexcept
   auto response = co_await CoGet(curl, url);
   
   if (response.status != 200 || response.body.empty() || !response.body.c_str() || strlen(response.body.c_str()) <= 5) {
-    LogDebug("curl status %u ",response.status);
+    LogFormat("curl status %u ",response.status);
     co_return;
   }
   //LogDebug("response %s ",

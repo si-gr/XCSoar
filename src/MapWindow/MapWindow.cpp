@@ -9,6 +9,7 @@
 #include "Terrain/RasterTerrain.hpp"
 #include "Weather/Rasp/RaspRenderer.hpp"
 #include "Computer/GlideComputer.hpp"
+#include "LogFile.hpp"
 
 #ifdef ENABLE_OPENGL
 #include "ui/canvas/opengl/Scissor.hpp"
@@ -78,7 +79,6 @@ MapWindow::ReadBlackboard(const MoreData &nmea_info,
   MapWindowBlackboard::ReadBlackboard(nmea_info, derived_info);
   ReadComputerSettings(settings_computer);
   ReadMapSettings(settings_map);
-  UpdateJETProviderTracking(jet_provider_data);
 }
 
 unsigned

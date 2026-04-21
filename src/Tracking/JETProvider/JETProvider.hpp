@@ -34,6 +34,7 @@ Copyright_License {
 #include <chrono>
 
 #include <map>
+#include <string>
 
 /**
  * API JET XCSOAR provider
@@ -69,6 +70,10 @@ struct Data {
   std::vector<std::unique_ptr<JETProvider::Data::Traffic>> traffics;
   bool success = false;
   size_t last_traffic_count = 0;
+
+  // Historic circling traffic stored at backend layer
+  std::map<std::string, Traffic> historic_circling_traffic;
+  mutable Mutex historic_circling_mutex;
 
 };
 
