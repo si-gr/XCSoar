@@ -5,6 +5,7 @@
 #include "FLARM/Friends.hpp"
 #include "Tracking/JETProvider/JETProvider.hpp"
 #include "util/StringCompare.hxx"
+#include "LogFile.hpp"
 
 void
 MapWindowBlackboard::UpdateJETProviderTracking(const JETProvider::Data *jet_provider_data) noexcept
@@ -27,24 +28,20 @@ MapWindowBlackboard::UpdateJETProviderTracking(const JETProvider::Data *jet_prov
     std::string traffic_name{traffic->name};
 
     if (traffic->is_circling) {
-      if (auto it = historic_circling.find(traffic_name); it != historic_circling.end()) {
-        it->second.location = traffic->location;
-        it->second.epoch = traffic->epoch;
-      } else {
-        JETProvider::Data::Traffic new_historic;
-        new_historic.name = traffic->name;
-        new_historic.location = traffic->location;
-        new_historic.epoch = traffic->epoch;
-        new_historic.vspeed = traffic->vspeed;
-        new_historic.track = traffic->track;
-        new_historic.altitude = traffic->altitude;
-        new_historic.speed = traffic->speed;
-        new_historic.type = traffic->type;
-        new_historic.is_circling = true;
-        historic_circling.try_emplace(traffic_name, new_historic);
-      }
+      JETProvider::Data::Traffic new_historic;
+      new_historic.name = traffic->name;
+      new_historic.location = traffic->location;
+      new_historic.epoch = traffic->epoch;
+      new_historic.vspeed = traffic->vspeed;
+      new_historic.track = traffic->track;
+      new_historic.altitude = traffic->altitude;
+      new_historic.speed = traffic->speed;
+      new_historic.type = traffic->type;
+      new_historic.is_circling = true;
+      historic_circling.try_emplace(traffic_name, new_historic);
     }
   }
+  LogDebug("historic_circling length %d ", historic_circling.size());
 
   for (auto it = historic_circling.begin(); it != historic_circling.end();) {
     auto age = now - static_cast<int64_t>(it->second.epoch);

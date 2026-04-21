@@ -96,17 +96,8 @@ protected:
   }
 
   [[gnu::const]]
-  const auto &GetJETProviderClimbPositionTraffic() const noexcept {
-    return jet_provider_climb_position_traffic;
-  }
-
-  [[gnu::const]]
   const auto &GetJETProviderHistoricCirclingTraffic() const noexcept {
     return jet_provider_historic_circling_traffic;
-  }
-
-  auto &GetJETProviderClimbPositionTrafficForUpdate() noexcept {
-    return jet_provider_climb_position_traffic;
   }
 
   auto &GetJETProviderHistoricCirclingTrafficForUpdate() noexcept {

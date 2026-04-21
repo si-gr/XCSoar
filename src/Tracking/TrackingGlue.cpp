@@ -69,35 +69,39 @@ void TrackingGlue::OnJETTraffic(std::vector<std::unique_ptr<JETProvider::Data::T
   const uint32_t now_s = static_cast<uint32_t>(
     std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 
-  auto &existing = jet_provider_data.traffics;
-  for (auto it = existing.begin(); it != existing.end();) {
+  for (auto it = jet_provider_data.traffics.begin(); it != jet_provider_data.traffics.end();) {
     if ((*it)->epoch < now_s - 600) {
-      it = existing.erase(it);
+      it = jet_provider_data.traffics.erase(it);
     } else {
       ++it;
     }
   }
 
+  int removeCounter = 0;
   // 2) If we have new traffics, append them to the remaining list
   if (success) {
     for (auto&& traffic : traffics) {
-      for (auto it = existing.begin(); it != existing.end();) {
-        if ((*it)->name == traffic->name) {
-          it = existing.erase(it);
+      for (auto it = jet_provider_data.traffics.begin(); it != jet_provider_data.traffics.end();) {
+        // compare name strings
+        if ((*it)->name && traffic->name && strcmp((*it)->name, traffic->name) == 0) {
+          it = jet_provider_data.traffics.erase(it);
+          removeCounter++;
         } else {
           ++it;
         }
       }
-      existing.push_back(std::move(traffic));
+      //LogFormat("OnJETTraffic name of traffic to add: %s ", traffic->name); 
+      jet_provider_data.traffics.push_back(std::move(traffic));
     }
+    
   }
 
   // 3) Update status and last traffic count
   jet_provider_data.success = success;
-  jet_provider_data.last_traffic_count = static_cast<uint32_t>(existing.size());
+  jet_provider_data.last_traffic_count = static_cast<uint32_t>(jet_provider_data.traffics.size());
 
-  LogFormat("OnJETTraffic size:%d success:%d",
-    (int) jet_provider_data.traffics.size(), success);
+  LogFormat("OnJETTraffic size:%d success:%d replaced counter:%d",
+    (int) jet_provider_data.traffics.size(), success, removeCounter);
 }
 
 void

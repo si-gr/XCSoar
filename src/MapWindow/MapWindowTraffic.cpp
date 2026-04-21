@@ -396,6 +396,7 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
 
   // Render historic circling positions at 25% size with fading style
   if (const auto &historic = GetJETProviderHistoricCirclingTraffic(); !historic.empty()) {
+    
     for (const auto &[name, traffic] : historic) {
       if (!traffic.location.IsValid())
         continue;
