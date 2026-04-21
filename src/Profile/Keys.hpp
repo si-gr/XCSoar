@@ -274,6 +274,7 @@ constexpr std::string_view LiveTrack24TrackingVehicleName = "TrackingVehicleName
 constexpr std::string_view JETProviderRadarEnabled = "JETProviderRadarEnabled";
 constexpr std::string_view JETProviderRadarInterval = "JETProviderRadarInterval";
 constexpr std::string_view JETProviderRadarAccessToken = "JETProviderRadarAccessToken";
+constexpr std::string_view JETProviderRadarHistoricTrafficScale = "JETProviderRadarHistoricTrafficScale";
 
 constexpr std::string_view PCMetUsername = "PCMetUsername";
 constexpr std::string_view PCMetPassword = "PCMetPassword";

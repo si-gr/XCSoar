@@ -30,6 +30,7 @@ namespace Profile {
     map.Get(ProfileKeys::JETProviderRadarEnabled, settings.enabled);
     map.Get(ProfileKeys::JETProviderRadarInterval, settings.interval);
     map.Get(ProfileKeys::JETProviderRadarAccessToken, settings.access_token);
+    map.Get(ProfileKeys::JETProviderRadarHistoricTrafficScale, settings.historic_traffic_scale);
   }
 }
 

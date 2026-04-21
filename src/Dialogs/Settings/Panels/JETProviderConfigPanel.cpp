@@ -81,6 +81,12 @@ void JETProviderConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &r
   AddText(_("Last Result Count"),
     _("Number of traffic items received in the last JETTraffic server request."),
     traffic_count_buffer);
+  
+  AddInteger(_("Historic Traffic Scale"),
+    _("Scale of historic traffic display in percent. 0% disables historic traffic, 100% shows full size."),
+    "%d %%", "%d %%",
+    0, 100, 10, settings.radar.historic_traffic_scale);
+  SetExpertRow(RADAR_HISTORIC_TRAFFIC_SCALE);
 }
 
 bool JETProviderConfigPanel::Save(bool &_changed) noexcept {
@@ -97,6 +103,9 @@ bool JETProviderConfigPanel::Save(bool &_changed) noexcept {
   
   changed |= SaveValue(RADAR_ACCESS_TOKEN,
     ProfileKeys::JETProviderRadarAccessToken, settings.radar.access_token);
+  
+  changed |= SaveValueInteger(RADAR_HISTORIC_TRAFFIC_SCALE,
+    ProfileKeys::JETProviderRadarHistoricTrafficScale, settings.radar.historic_traffic_scale);
   
   _changed |= changed;
 

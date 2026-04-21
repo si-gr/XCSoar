@@ -377,30 +377,32 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
                           Angle::Degrees(traffic->track) - projection.GetScreenAngle(),
                           color, sc);
   }
+  
+  const unsigned historic_scale_percent = GetComputerSettings().jet_provider_setting.radar.historic_traffic_scale;
+  if (historic_scale_percent > 0) {
+    // Render historic circling positions with configurable scale
+    const std::lock_guard historic_lock{jet_provider_data->historic_circling_mutex};
+    if (const auto &historic = jet_provider_data->historic_circling_traffic; !historic.empty()) {
+      
+      for (const auto &[name, traffic] : historic) {
+        if (!traffic.location.IsValid())
+          continue;
 
-  // Render historic circling positions at 25% size with fading style
-  const std::lock_guard historic_lock{jet_provider_data->historic_circling_mutex};
-  if (const auto &historic = jet_provider_data->historic_circling_traffic; !historic.empty()) {
-    
-    for (const auto &[name, traffic] : historic) {
-      if (!traffic.location.IsValid())
-        continue;
+        FlarmTraffic draw_traffic;
+        draw_traffic.location = traffic.location;
+        draw_traffic.location_available = true;
+        draw_traffic.climb_rate = traffic.vspeed;
+        draw_traffic.climb_rate_avg2min = traffic.avg_climb;
+        draw_traffic.alarm_level = FlarmTraffic::AlarmType::NONE;
 
-      FlarmTraffic draw_traffic;
-      draw_traffic.location = traffic.location;
-      draw_traffic.location_available = true;
-      draw_traffic.climb_rate = traffic.vspeed;
-      draw_traffic.climb_rate_avg2min = traffic.avg_climb;
-      draw_traffic.alarm_level = FlarmTraffic::AlarmType::NONE;
-
-      auto p = projection.GeoToScreenIfVisible(draw_traffic.location);
-      if (!p)
-        continue;
-
-      TrafficRenderer::Draw(canvas, traffic_look,
-                            /*fading=*/false, draw_traffic,
-                            Angle::Degrees(traffic.track) - projection.GetScreenAngle(),
-                            FlarmColor::NONE, *p, 0.25f);
+        auto p = projection.GeoToScreenIfVisible(draw_traffic.location);
+        if (!p)
+          continue;
+        TrafficRenderer::Draw(canvas, traffic_look,
+                              /*fading=*/false, draw_traffic,
+                              Angle::Degrees(traffic.track) - projection.GetScreenAngle(),
+                              FlarmColor::NONE, *p, float(historic_scale_percent) / 100.0f);
+      }
     }
   }
 }
