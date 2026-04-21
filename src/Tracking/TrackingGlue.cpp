@@ -126,7 +126,6 @@ void TrackingGlue::OnJETTraffic(std::vector<std::unique_ptr<JETProvider::Data::T
     }
   }
 
-  int removeCounter = 0;
   // 2) If we have new traffics, append them to the remaining list
   if (success) {
     for (auto&& traffic : traffics) {
@@ -134,7 +133,6 @@ void TrackingGlue::OnJETTraffic(std::vector<std::unique_ptr<JETProvider::Data::T
         // compare name strings
         if ((*it)->name && traffic->name && strcmp((*it)->name, traffic->name) == 0) {
           it = jet_provider_data.traffics.erase(it);
-          removeCounter++;
         } else {
           ++it;
         }
