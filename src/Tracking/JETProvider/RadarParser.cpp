@@ -92,7 +92,7 @@ bool ParseTraffic(std::string line, Radar &radar) {
     traffic->epoch = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     traffic->type = to_c_str(items[8]);
     traffic->avg_climb = atof(items[9].c_str());
-    traffic->is_circling = true;//(items[10][0] == 'C');
+    traffic->is_circling = (items[10][0] == 'C');
 
     if (traffic->type && traffic->type[0] == 'n'){
         // static object

@@ -13,7 +13,7 @@
 static void
 UpdateJETProviderTracking(JETProvider::Data *jet_provider_data) noexcept
 {
-  LogDebug("TrackingGlue historic_cirling");
+  //LogDebug("TrackingGlue historic_cirling");
   if (jet_provider_data == nullptr || jet_provider_data->traffics.empty()) {
     return;
   }
@@ -40,14 +40,12 @@ UpdateJETProviderTracking(JETProvider::Data *jet_provider_data) noexcept
       new_historic.speed = traffic->speed;
       new_historic.type = traffic->type;
       new_historic.is_circling = true;
-      //jet_provider_data->historic_circling_traffic.try_emplace(traffic_name, new_historic);
-      // emplace with traffic_name + epoch to avoid replacing existing historic circling traffic with new one if same name appears again
       std::string historic_key = traffic_name + "_" + std::to_string(traffic->epoch);
       jet_provider_data->historic_circling_traffic.try_emplace(historic_key, new_historic);
-      LogFormat("Added historic circling traffic %s epoch %u", traffic_name.c_str(), traffic->epoch);
+      //LogFormat("Added historic circling traffic %s epoch %u", traffic_name.c_str(), traffic->epoch);
     }
   }
-  LogFormat("historic_circling length %lu ", jet_provider_data->historic_circling_traffic.size());
+  //LogFormat("historic_circling length %lu ", jet_provider_data->historic_circling_traffic.size());
 
   for (auto it = jet_provider_data->historic_circling_traffic.begin(); 
        it != jet_provider_data->historic_circling_traffic.end();) {
@@ -152,8 +150,7 @@ void TrackingGlue::OnJETTraffic(std::vector<std::unique_ptr<JETProvider::Data::T
 
   UpdateJETProviderTracking(&jet_provider_data);
 
-  LogFormat("OnJETTraffic size:%d success:%d replaced counter:%d",
-    (int) jet_provider_data.traffics.size(), success, removeCounter);
+  //LogFormat("OnJETTraffic size:%d success:%d replaced counter:%d", (int) jet_provider_data.traffics.size(), success, removeCounter);
 }
 
 void
