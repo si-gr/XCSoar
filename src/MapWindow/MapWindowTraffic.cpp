@@ -310,31 +310,10 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
 
     std::string traffic_name{traffic->name};
 
-    const auto &old_positions = GetJETProviderTraffic1MinAgo();
-    auto old_it = old_positions.find(traffic_name);
-
-    GeoPoint position_1min_ago;
-    bool have_position_1min = false;
-
-    if (old_it != old_positions.end() && old_it->second.location.IsValid()) {
-      auto age = now - static_cast<int64_t>(old_it->second.epoch);
-      if (age >= 60) {
-        position_1min_ago = old_it->second.location;
-        have_position_1min = true;
-      }
-    }
-
-    // Use JETTraffic server-provided circling status to determine stationary traffic
-    bool is_stationary = traffic->is_circling;
-
     FlarmTraffic t;
     t.location = traffic->location;
     t.location_available = traffic->location.IsValid();
     t.climb_rate = traffic->vspeed;
-    if (is_stationary && have_position_1min) {
-      t.location_1min_ago = position_1min_ago;
-      t.location_1min_ago_available = true;
-    }
     
     // Use average climb from JETTraffic server if available
     if (traffic->avg_climb >= 0.1) {
@@ -346,29 +325,6 @@ MapWindow::DrawJETProviderTraffic(Canvas &canvas,
       t.alarm_level = FlarmTraffic::AlarmType::NONE;
     } else {
       t.alarm_level = FlarmTraffic::AlarmType::OFFLINE;
-    }
-
-    if (is_stationary && traffic->avg_climb > 0) {
-      const auto &climb_positions = GetJETProviderClimbPositionTraffic();
-      auto climb_it = climb_positions.find(traffic_name);
-
-      if (climb_it != climb_positions.end()) {
-        FlarmTraffic climb_t;
-        climb_t.location = climb_it->second.location;
-        climb_t.location_available = true;
-        climb_t.climb_rate_avg2min = climb_it->second.avg_climb;
-        climb_t.climb_position = climb_it->second.location;
-        climb_t.climb_position_time = TimeStamp{std::chrono::duration<double>{static_cast<double>(climb_it->second.epoch)}};
-        climb_t.climb_position_valid = true;
-        climb_t.alarm_level = FlarmTraffic::AlarmType::NONE;
-
-        auto p = projection.GeoToScreenIfVisible(climb_t.climb_position);
-        if (p) {
-          TrafficRenderer::Draw(canvas, traffic_look, true, climb_t,
-                                Angle::Degrees(climb_it->second.track) - projection.GetScreenAngle(),
-                                FlarmColor::GREEN, *p);
-        }
-      }
     }
 
     auto color = FlarmColor::GREEN;

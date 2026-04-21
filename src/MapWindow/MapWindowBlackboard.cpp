@@ -18,70 +18,6 @@ MapWindowBlackboard::UpdateJETProviderTracking(const JETProvider::Data *jet_prov
 
   const std::lock_guard lock{jet_provider_data->mutex};
 
-  auto &climb_positions = GetJETProviderClimbPositionTrafficForUpdate();
-
-  for (auto &traffic : jet_provider_data->traffics) {
-    if (traffic->name == nullptr || StringIsEmpty(traffic->name))
-      continue;
-
-    std::string traffic_name{traffic->name};
-
-    auto &old_positions = GetJETProviderTraffic1MinAgoForUpdate();
-    auto old_it = old_positions.find(traffic_name);
-
-    GeoPoint position_1min_ago;
-    bool have_position_1min = false;
-
-    if (old_it != old_positions.end() && old_it->second.location.IsValid()) {
-      auto age = now - static_cast<int64_t>(old_it->second.epoch);
-      if (age >= 60) {
-        position_1min_ago = old_it->second.location;
-        have_position_1min = true;
-      }
-    }
-
-    bool is_stationary = false;
-    if (have_position_1min && traffic->location.IsValid()) {
-      auto distance = traffic->location.Distance(position_1min_ago);
-      is_stationary = distance < 1000;
-    }
-
-    if (is_stationary && std::fabs(traffic->vspeed) > 0.5f) {
-      if (auto it = climb_positions.find(traffic_name); it != climb_positions.end()) {
-        it->second.location = traffic->location;
-        it->second.epoch = traffic->epoch;
-      } else {
-        JETProvider::Data::Traffic new_climb;
-        new_climb.name = traffic->name;
-        new_climb.location = traffic->location;
-        new_climb.epoch = traffic->epoch;
-        new_climb.vspeed = traffic->vspeed;
-        new_climb.track = traffic->track;
-        new_climb.altitude = traffic->altitude;
-        new_climb.speed = traffic->speed;
-        new_climb.type = traffic->type;
-        climb_positions.try_emplace(traffic_name, new_climb);
-      }
-    }
-
-    if (auto it = old_positions.find(traffic_name); it != old_positions.end()) {
-      if (traffic->location.IsValid()) {
-        it->second = *traffic;
-      }
-    } else if (traffic->location.IsValid()) {
-      old_positions.try_emplace(traffic_name, *traffic);
-    }
-  }
-
-  for (auto it = climb_positions.begin(); it != climb_positions.end();) {
-    auto age = now - static_cast<int64_t>(it->second.epoch);
-    if (age > 600) {
-      it = climb_positions.erase(it);
-    } else {
-      ++it;
-    }
-  }
-
   auto &historic_circling = GetJETProviderHistoricCirclingTrafficForUpdate();
   
   for (auto &traffic : jet_provider_data->traffics) {
@@ -90,7 +26,7 @@ MapWindowBlackboard::UpdateJETProviderTracking(const JETProvider::Data *jet_prov
 
     std::string traffic_name{traffic->name};
 
-    if (traffic->is_circling && traffic->vspeed > 0.5) {
+    if (traffic->is_circling) {
       if (auto it = historic_circling.find(traffic_name); it != historic_circling.end()) {
         it->second.location = traffic->location;
         it->second.epoch = traffic->epoch;

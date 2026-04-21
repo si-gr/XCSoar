@@ -2,6 +2,7 @@
 // Copyright The XCSoar Project
 
 #include "TrackingGlue.hpp"
+#include <chrono>
 #include "Tracking/TrackingSettings.hpp"
 #include "NMEA/MoreData.hpp"
 #include "LogFile.hpp"
@@ -60,17 +61,40 @@ TrackingGlue::OnTraffic(uint32_t pilot_id, unsigned time_of_day_ms,
 
 void TrackingGlue::OnJETTraffic(std::vector<std::unique_ptr<JETProvider::Data::Traffic>> &traffics, bool success)
 {
-  //const std::lock_guard<Mutex> lock(jet_provider_data.mutex);
+  // Protect shared state with mutex
   const std::lock_guard lock{jet_provider_data.mutex};
 
-  jet_provider_data.success = success;
-  jet_provider_data.last_traffic_count = traffics.size();
-  if (success) {
-    jet_provider_data.traffics.clear(); // erasing unique ptr -> clearing memory
-    for (auto&& traffic : traffics) {
-      jet_provider_data.traffics.push_back(std::move(traffic));
+  // 1) Remove old traffic items older than 10 minutes (epoch < now - 600)
+  auto now = std::chrono::system_clock::now();
+  const uint32_t now_s = static_cast<uint32_t>(
+    std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+
+  auto &existing = jet_provider_data.traffics;
+  for (auto it = existing.begin(); it != existing.end();) {
+    if ((*it)->epoch < now_s - 600) {
+      it = existing.erase(it);
+    } else {
+      ++it;
     }
   }
+
+  // 2) If we have new traffics, append them to the remaining list
+  if (success) {
+    for (auto&& traffic : traffics) {
+      for (auto it = existing.begin(); it != existing.end();) {
+        if ((*it)->name == traffic->name) {
+          it = existing.erase(it);
+        } else {
+          ++it;
+        }
+      }
+      existing.push_back(std::move(traffic));
+    }
+  }
+
+  // 3) Update status and last traffic count
+  jet_provider_data.success = success;
+  jet_provider_data.last_traffic_count = static_cast<uint32_t>(existing.size());
 
   LogFormat("OnJETTraffic size:%d success:%d",
     (int) jet_provider_data.traffics.size(), success);

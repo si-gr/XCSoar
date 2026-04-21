@@ -31,6 +31,7 @@ Copyright_License {
 #include "thread/Mutex.hxx"
 #include "lib/curl/Request.hxx"
 #include "co/InjectTask.hxx"
+#include <chrono>
 
 #include <map>
 

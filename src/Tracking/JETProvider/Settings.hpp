@@ -24,6 +24,7 @@ Copyright_License {
 #ifndef JET_PROVIDER_SETTINGS_HPP
 #define JET_PROVIDER_SETTINGS_HPP
 
+#include <chrono>
 #include "util/StaticString.hxx"
 
 struct JETProviderSettings {
