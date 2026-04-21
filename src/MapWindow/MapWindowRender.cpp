@@ -204,6 +204,9 @@ MapWindow::Render(Canvas &canvas, const PixelRect &rc) noexcept
   draw_sw.Mark("DrawNOAAStations");
   RenderNOAAStations(canvas);
 
+  
+  DrawJETProviderTraffic(canvas, aircraft_pos);
+
   //////////////////////////////////////////////// glide range info
 
   draw_sw.Mark("RenderFinalGlideShading");
@@ -277,7 +280,6 @@ MapWindow::Render(Canvas &canvas, const PixelRect &rc) noexcept
 
   DrawFLARMTraffic(canvas, aircraft_pos);
 
-  DrawJETProviderTraffic(canvas, aircraft_pos);
 
   //////////////////////////////////////////////// own aircraft
   // Finally, draw you!
