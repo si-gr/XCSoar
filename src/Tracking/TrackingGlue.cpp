@@ -11,9 +11,9 @@
 #include "util/StringCompare.hxx"
 
 static void
-UpdateJETProviderTracking(JETProvider::Data *jet_provider_data) noexcept
+UpdateJETProviderTracking(JETProvider::Data *jet_provider_data,
+                          const JETProviderSettings &settings) noexcept
 {
-  //LogDebug("TrackingGlue historic_cirling");
   if (jet_provider_data == nullptr || jet_provider_data->traffics.empty()) {
     return;
   }
@@ -45,12 +45,13 @@ UpdateJETProviderTracking(JETProvider::Data *jet_provider_data) noexcept
       //LogFormat("Added historic circling traffic %s epoch %u", traffic_name.c_str(), traffic->epoch);
     }
   }
-  //LogFormat("historic_circling length %lu ", jet_provider_data->historic_circling_traffic.size());
 
+  const unsigned historic_traffic_age_seconds = settings.radar.historic_traffic_age_seconds;
+  
   for (auto it = jet_provider_data->historic_circling_traffic.begin(); 
        it != jet_provider_data->historic_circling_traffic.end();) {
     auto age = now - static_cast<int64_t>(it->second.epoch);
-    if (age > 300) {
+    if (age > historic_traffic_age_seconds) {
       it = jet_provider_data->historic_circling_traffic.erase(it);
     } else {
       ++it;
@@ -71,6 +72,7 @@ TrackingGlue::SetSettings(const TrackingSettings &_settings)
 {
   skylines.SetSettings(_settings.skylines);
   livetrack24.SetSettings(_settings.livetrack24);
+  settings = _settings;
 }
 
 void
@@ -146,7 +148,7 @@ void TrackingGlue::OnJETTraffic(std::vector<std::unique_ptr<JETProvider::Data::T
   jet_provider_data.success = success;
   jet_provider_data.last_traffic_count = static_cast<uint32_t>(jet_provider_data.traffics.size());
 
-  UpdateJETProviderTracking(&jet_provider_data);
+  UpdateJETProviderTracking(&jet_provider_data, settings.jet_provider_setting);
 
   //LogFormat("OnJETTraffic size:%d success:%d replaced counter:%d", (int) jet_provider_data.traffics.size(), success, removeCounter);
 }

@@ -36,6 +36,8 @@ Copyright_License {
 #include <map>
 #include <string>
 
+#include "Settings.hpp"
+
 /**
  * API JET XCSOAR provider
  */
@@ -92,6 +94,7 @@ Co::InjectTask inject_task;
 PeriodClock clock;
 
 const char *access_token;
+JETProviderSettings settings;
 
 public:
   Glue(CurlGlobal &curl, Handler *_handler);

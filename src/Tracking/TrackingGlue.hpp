@@ -17,7 +17,7 @@
 #include "Geo/GeoPoint.hpp"
 #include "time/BrokenDateTime.hpp"
 
-struct TrackingSettings;
+#include "Tracking/TrackingSettings.hpp"
 struct MoreData;
 struct DerivedInfo;
 class CurlGlobal;
@@ -35,6 +35,8 @@ class TrackingGlue final
   JETProvider::Glue jet_provider;
   
   JETProvider::Data jet_provider_data;
+
+  TrackingSettings settings;
 
   /**
    * The Unix UTC time stamp that was last submitted to the tracking

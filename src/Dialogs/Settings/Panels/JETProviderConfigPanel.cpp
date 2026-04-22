@@ -53,21 +53,12 @@ void JETProviderConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &r
     nullptr,
     settings.radar.access_token);
   
-  if(settings.radar.access_token.Contains("JIM") || settings.radar.access_token.Contains("DEV")) {
-    AddDuration(_("Interval"), nullptr,
-      std::chrono::seconds{1},
-      std::chrono::seconds{15},
-      std::chrono::seconds{1},
-      settings.radar.interval,
-      2);
-  } else {
-    AddDuration(_("Interval"), nullptr,
+  AddDuration(_("Interval"), nullptr,
       std::chrono::seconds{5},
       std::chrono::seconds{60},
       std::chrono::seconds{5},
       settings.radar.interval,
       2);
-  }
   SetExpertRow(RADAR_INTERVAL);
   
   // Display the count of the last traffic request result
@@ -87,6 +78,13 @@ void JETProviderConfigPanel::Prepare(ContainerWindow &parent, const PixelRect &r
     "%d %%", "%d %%",
     0, 100, 10, settings.radar.historic_traffic_scale);
   SetExpertRow(RADAR_HISTORIC_TRAFFIC_SCALE);
+  
+  AddInteger(_("Historic Traffic Age"),
+    _("Age at which historic circling traffic is erased from the array. Values between 60 and 600 seconds."),
+    "%u", "%u",
+    60, 600, 30,
+    settings.radar.historic_traffic_age_seconds);
+  SetExpertRow(RADAR_HISTORIC_TRAFFIC_AGE_SECONDS);
 }
 
 bool JETProviderConfigPanel::Save(bool &_changed) noexcept {
@@ -106,6 +104,9 @@ bool JETProviderConfigPanel::Save(bool &_changed) noexcept {
   
   changed |= SaveValueInteger(RADAR_HISTORIC_TRAFFIC_SCALE,
     ProfileKeys::JETProviderRadarHistoricTrafficScale, settings.radar.historic_traffic_scale);
+  
+  changed |= SaveValueInteger(RADAR_HISTORIC_TRAFFIC_AGE_SECONDS,
+    ProfileKeys::JETProviderRadarHistoricTrafficAgeSeconds, settings.radar.historic_traffic_age_seconds);
   
   _changed |= changed;
 

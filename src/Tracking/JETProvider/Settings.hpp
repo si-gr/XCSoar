@@ -34,12 +34,14 @@ struct JETProviderSettings {
     std::chrono::duration<unsigned> interval;
     StaticString<64> access_token;
     unsigned historic_traffic_scale;
+    unsigned historic_traffic_age_seconds;
 
     void SetDefaults() {
       enabled = false;
       interval = std::chrono::seconds{5};;
       access_token.clear();
       historic_traffic_scale = 25;
+      historic_traffic_age_seconds = 300;
     }
   };
 

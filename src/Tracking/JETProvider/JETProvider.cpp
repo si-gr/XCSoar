@@ -59,7 +59,7 @@ JETProvider::Glue::Glue(CurlGlobal &_curl, Handler *_handler)
 void
 JETProvider::Glue::OnTimer(const NMEAInfo &basic, const DerivedInfo &calculated) {
   (void)calculated;
-  const JETProviderSettings &settings =
+  settings =
     CommonInterface::GetComputerSettings().jet_provider_setting;
   access_token = settings.radar.access_token;
   if (!settings.radar.enabled || strlen(access_token) <= 5) {
