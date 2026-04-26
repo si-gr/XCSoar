@@ -221,6 +221,11 @@ InfoBoxContentBankAngle::Update(InfoBoxData &data) noexcept
 
   valid = true;
   bank = basic.attitude.bank_angle.Absolute().Degrees();
+
+  // Enable custom painting (colored background) BEFORE setting value
+  data.SetCustom((uint64_t)(bank * 100) + (uint64_t)(turn_radius * 10));
+
+  // Set value AFTER SetCustom to prevent it from being cleared
   data.FmtValue("{:+.0f}", basic.attitude.bank_angle.Degrees());
 
   if (basic.ground_speed_available && bank > 1) {
@@ -231,8 +236,6 @@ InfoBoxContentBankAngle::Update(InfoBoxData &data) noexcept
     turn_radius = 0;
     data.SetComment(_("---"));
   }
-
-  data.SetCustom((uint64_t)(bank * 100) + (uint64_t)(turn_radius * 10));
 }
 
 void
